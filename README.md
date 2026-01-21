@@ -1,59 +1,84 @@
-# NLP-Driven Test Case Generator
+\documentclass[12pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
 
-NLP-Driven Test Case Generator is an automated tool designed to bridge the gap between Natural Language (NL) software requirements and rigorous testing. It uses traditional parsing for boundary value analysis and leverages Large Language Models (LLMs)—specifically **Llama-3.2-3B**—to identify high-risk security vulnerabilities.
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    backgroundcolor=\color{gray!10},
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{red},
+}
 
-## 🚀 Features
+\title{\textbf{NLP-Driven Test Case Generator}}
+\author{}
+\date{}
 
-* **Requirement Parsing**: Automatically extracts data types (integer, string, boolean, float) and numerical constraints from natural language text.
-* **Boundary Value Analysis**: Generates test cases for exact bounds, as well as "off-by-one" values (just above and just below limits).
-* **LLM Security Audits**: Utilizes Llama-3.2-3B to identify risks such as Buffer Overflows, SQL Injection, and Integer Overflows based on software requirements.
-* **GPU Optimization**: Configured to run efficiently on 6GB VRAM hardware (like the RTX 3050) using 4-bit quantization.
-* **Automated Runner**: Includes a module to execute generated tests against target applications and capture success, failure, or system crashes.
+\begin{document}
 
-## 🛠️ Installation
+\maketitle
 
+\section{Introduction}
+\textbf{NLP-Driven Test Case Generator} is an automated tool designed to bridge the gap between Natural Language (NL) software requirements and rigorous testing. It uses traditional parsing for boundary value analysis and leverages Large Language Models (LLMs)---specifically \textbf{Llama-3.2-3B}---to identify high-risk security vulnerabilities.
+
+\section{Features}
+\begin{itemize}
+    \item \textbf{Requirement Parsing}: Automatically extracts data types (integer, string, boolean, float) and numerical constraints from natural language text.
+    \item \textbf{Boundary Value Analysis}: Generates test cases for exact bounds, as well as ``off-by-one'' values (just above and just below limits).
+    \item \textbf{LLM Security Audits}: Utilizes Llama-3.2-3B to identify risks such as Buffer Overflows, SQL Injection, and Integer Overflows based on software requirements.
+    \item \textbf{GPU Optimization}: Configured to run efficiently on 6GB VRAM hardware (like the RTX 3050) using 4-bit quantization.
+    \item \textbf{Automated Runner}: Includes a module to execute generated tests against target applications and capture success, failure, or system crashes.
+\end{itemize}
+
+\section{Installation}
 Ensure you have Python 3.10 or higher installed.
 
-1. **Clone the repository**:
-   ```bash
-   git clone [https://github.com/your-username/nlp_testgen.git](https://github.com/your-username/nlp_testgen.git)
-   cd nlp_testgen
-Install the package and dependencies:
+\subsection{Clone the repository}
+\begin{lstlisting}[language=bash]
+git clone https://github.com/samdha1/NLP-Driven-Test-Case-Generator.git
+\end{lstlisting}
 
-Bash
-
+\subsection{Install the package and dependencies}
+\begin{lstlisting}[language=bash]
 pip install .
+\end{lstlisting}
+
 Dependencies include: torch, transformers, numpy, spacy, and tokenizers.
 
-💻 Usage
-Automated Security Audit
+\section{Usage}
+
+\subsection{Automated Security Audit}
 Run the specialized security script to analyze a requirement using Llama-3.2:
-
-Bash
-
+\begin{lstlisting}[language=bash]
 python llama_security_test.py
-CLI Boundary Generation
+\end{lstlisting}
+
+\subsection{CLI Boundary Generation}
 Generate standard boundary test cases directly from the command line:
-
-Bash
-
+\begin{lstlisting}[language=bash]
 nlp_testgen --spec "The application accepts a user_id string between 5 and 10 characters."
-AI Risk Analysis
+\end{lstlisting}
+
+\subsection{AI Risk Analysis}
 Generate general security risks for web inputs using the built-in AI module:
-
-Bash
-
+\begin{lstlisting}[language=bash]
 python test_ai.py
-📂 Project Structure
-src/nlp_testgen/parser/: Extracts constraints and types from NL.
+\end{lstlisting}
 
-src/nlp_testgen/generator/: Logic for calculating boundary test values.
+\section{Project Structure}
+\begin{itemize}
+    \item \texttt{src/nlp\_testgen/parser/}: Extracts constraints and types from NL.
+    \item \texttt{src/nlp\_testgen/generator/}: Logic for calculating boundary test values.
+    \item \texttt{src/nlp\_testgen/llm/}: Model loading, quantization, and text generation logic.
+    \item \texttt{src/nlp\_testgen/runner/}: Executes tests and monitors for program crashes.
+    \item \texttt{examples/}: Sample programs to test the generator against.
+\end{itemize}
 
-src/nlp_testgen/llm/: Model loading, quantization, and text generation logic.
+\section{License}
+Refer to the \texttt{LICENSE} file in the root directory for details.
 
-src/nlp_testgen/runner/: Executes tests and monitors for program crashes.
-
-examples/: Sample programs to test the generator against.
-
-📄 License
-Refer to the LICENSE file in the root directory for details.
+\end{document}
