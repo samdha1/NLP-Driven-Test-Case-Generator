@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nlp_testgen"
+version = "0.1.0"
+description = "A tool for generating tests using Natural Language Processing"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "numpy>=1.24.0",
+    "tqdm>=4.65.0",
+    "spacy>=3.5.0",
+    "tokenizers>=0.13.0",
+]
+
+[project.scripts]
+nlp_testgen = "nlp_testgen.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
