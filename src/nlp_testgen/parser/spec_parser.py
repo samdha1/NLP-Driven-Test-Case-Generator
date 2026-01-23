@@ -1,30 +1,28 @@
-import re
+import json
+from nlp_testgen.llm.generate import generate_text
 
 class SpecParser:
-    def __init__(self):
-        # Basic patterns to identify types and constraints
-        self.patterns = {
-            "range": r"between (\d+) and (\d+)",
-            "type": r"(integer|string|boolean|float)",
-            "mandatory": r"(must|required|mandatory)"
-        }
-
     def parse(self, text):
         """
-        Parses NL text into a simplified specification dictionary.
+        Uses Llama-3.2-3B to dynamically extract constraints from any English requirement.
         """
-        spec = {"raw": text, "constraints": []}
-        
-        # Example: Extracting range
-        range_match = re.search(self.patterns["range"], text.lower())
-        if range_match:
-            spec["min"] = int(range_match.group(1))
-            spec["max"] = int(range_match.group(2))
-            spec["constraints"].append("range_limit")
+        # Prompt designed to get structured data from the LLM
+        prompt = f"""<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+        You are a requirement analyzer. Extract numerical bounds and data types from the text.
+        Return ONLY a JSON object with keys: "min", "max", "data_type". 
+        If a value is missing, use null.<|eot_id|>
+        <|start_header_id|>user<|end_header_id|>
+        Requirement: {text}<|eot_id|>
+        <|start_header_id|>assistant<|end_header_id|>"""
 
-        # Example: Extracting type
-        type_match = re.search(self.patterns["type"], text.lower())
-        if type_match:
-            spec["data_type"] = type_match.group(1)
-            
+        response = generate_text(prompt, model_name="meta-llama/Llama-3.2-3B-Instruct")
+        
+        try:
+            # Attempt to parse the LLM response into a dictionary
+            spec = json.loads(response)
+        except:
+            # Fallback if the LLM output isn't clean JSON
+            spec = {"min": None, "max": None, "data_type": "string"}
+        
+        spec["raw"] = text
         return spec
