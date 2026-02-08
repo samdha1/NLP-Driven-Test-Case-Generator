@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 def generate_tests(requirement, test_type="all"):
     """Generate test cases for a requirement."""
     try:
-        from spec_parser import SpecParser
-        from test_generator import TestGenerator
+        from src.nlp_testgen.parser.spec_parser import SpecParser
+        from src.nlp_testgen.generator.test_generator import TestGenerator
         
         print(f"\n{'='*70}")
         print(f"🤖 LLM-POWERED TEST CASE GENERATOR")
@@ -52,7 +52,7 @@ def generate_tests(requirement, test_type="all"):
         print("      pip install huggingface-hub")
         print("      huggingface-cli login")
         print("\n   2. Accept Llama license:")
-        print("      https://huggingface.co/meta-llama/Llama-3.2-1B-Instruct")
+        print("      https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct")
         print()
 
 

@@ -15,7 +15,7 @@ _model_cache = {}
 _tokenizer_cache = {}
 
 
-def load_model_and_tokenizer(model_name="meta-llama/Llama-3.2-1B-Instruct"):
+def load_model_and_tokenizer(model_name="meta-llama/Llama-3.2-3B-Instruct"):
     """Load model and tokenizer with caching."""
     
     if model_name in _model_cache:
@@ -65,7 +65,7 @@ def load_model_and_tokenizer(model_name="meta-llama/Llama-3.2-1B-Instruct"):
     return model, tokenizer, device
 
 
-def generate_text(prompt, model_name="meta-llama/Llama-3.2-1B-Instruct", max_tokens=300, temperature=0.7):
+def generate_text(prompt, model_name="meta-llama/Llama-3.2-3B-Instruct", max_tokens=300, temperature=0.7):
     """
     Generate text using LLM.
     
