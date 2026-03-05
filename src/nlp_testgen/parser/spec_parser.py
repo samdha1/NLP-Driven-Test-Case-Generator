@@ -12,8 +12,6 @@ class SpecParser:
         self.model_name = model_name
 
     def parse(self, text):
-        """Parse requirement text. Returns a list of specs if multiple inputs detected,
-        or a single spec dict for backwards compatibility."""
         logger.info(f"Parsing requirement with LLM: {text}")
 
         if self.multiple(text):
