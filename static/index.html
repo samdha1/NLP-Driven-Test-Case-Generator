@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NLP Test Case Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --success: #3fb950;
+      --warning: #d29922;
+      --danger: #f85149;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+    .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
+    h1 { font-weight: 700; font-size: 1.75rem; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+    label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    textarea {
+      width: 100%; min-height: 120px; padding: 1rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); resize: vertical;
+    }
+    textarea::placeholder { color: var(--muted); }
+    .row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+    .checkbox-wrap { display: flex; align-items: center; gap: 0.5rem; }
+    .checkbox-wrap input { width: 18px; height: 18px; accent-color: var(--accent); }
+    .btn { font-family: 'Outfit', sans-serif; font-weight: 600; padding: 0.65rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .section { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
+    .section-title { font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--accent); font-weight: 600; }
+
+    /* ── JSON spec — plain as before ── */
+    .json-block {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1rem 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+    }
+    .json-block .key  { color: var(--accent); }
+    .json-block .num  { color: #79c0ff; }
+    .json-block .str  { color: var(--success); }
+    .json-block .null { color: var(--muted); }
+
+    /* ── Shared dropdown shell ── */
+    .drop {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 0.75rem;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+    .drop[open] { border-color: var(--accent); }
+    .drop-summary {
+      display: flex; align-items: center; gap: 0.85rem;
+      padding: 0.9rem 1.1rem; cursor: pointer;
+      list-style: none; background: var(--surface);
+      user-select: none;
+    }
+    .drop-summary::-webkit-details-marker { display: none; }
+    .chevron {
+      flex-shrink: 0; width: 16px; height: 16px;
+      fill: none; stroke: var(--muted); stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: transform 0.2s;
+    }
+    .drop[open] .chevron { transform: rotate(90deg); }
+    .drop-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .icon-boundary   { background: rgba(88,166,255,0.12); }
+    .icon-edge       { background: rgba(210,153,34,0.12); }
+    .icon-security   { background: rgba(248,81,73,0.12); }
+    .icon-constraint { background: rgba(63,185,80,0.12); }
+    .icon-other      { background: rgba(139,148,158,0.12); }
+    .icon-pass       { background: rgba(63,185,80,0.10); }
+    .icon-fail       { background: rgba(248,81,73,0.10); }
+    .drop-title { font-weight: 600; font-size: 1rem; flex: 1; }
+    .drop-count {
+      font-size: 0.78rem; font-family: 'JetBrains Mono', monospace;
+      color: var(--muted); background: rgba(139,148,158,0.08);
+      padding: 0.15rem 0.55rem; border-radius: 20px;
+      border: 1px solid var(--border);
+    }
+    .drop-body { background: var(--bg); padding: 0.6rem 0.85rem 0.85rem; display: grid; gap: 0.45rem; }
+
+    /* ── Test case rows ── */
+    .tc-row {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 0.65rem 0.9rem;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
+    }
+    .tc-left { flex: 1; min-width: 0; }
+    .tc-input { font-family: 'JetBrains Mono', monospace; font-size: 0.83rem; word-break: break-all; white-space: pre-wrap; }
+    .tc-desc  { font-size: 0.76rem; color: var(--muted); margin-top: 0.2rem; }
+    .vpill {
+      flex-shrink: 0; font-size: 0.7rem; font-weight: 600;
+      padding: 0.15rem 0.55rem; border-radius: 20px; white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .vpill-valid   { background: rgba(63,185,80,0.15);   color: var(--success); border: 1px solid rgba(63,185,80,0.3); }
+    .vpill-invalid { background: rgba(248,81,73,0.15);   color: var(--danger);  border: 1px solid rgba(248,81,73,0.3); }
+    .vpill-unknown { background: rgba(139,148,158,0.08); color: var(--muted);   border: 1px solid var(--border); }
+
+    /* ── Run result rows ── */
+    .rr-row {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 7px; padding: 0.65rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+    }
+    .rr-top { display: flex; align-items: center; gap: 0.65rem; }
+    .rr-num { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+    .rr-input { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .rr-detail { margin-top: 0.4rem; font-size: 0.78rem; color: var(--muted); display: grid; gap: 0.2rem; }
+    .rr-detail span { color: var(--text); }
+    .rr-detail .err { color: var(--danger); }
+
+    .error-msg { color: var(--danger); padding: 0.75rem; background: rgba(248,81,73,0.1); border-radius: 8px; margin-top: 1rem; }
+    .loading { color: var(--muted); margin-top: 1rem; }
+    .hint { font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0 0.5rem; }
+    .hint code { background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px; }
+    .run-summary { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .run-summary .pass { color: var(--success); font-weight: 600; }
+    .run-summary .fail { color: var(--danger);  font-weight: 600; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>NLP-Driven Test Case Generator</h1>
+  <p class="subtitle">Describe your requirement in natural language. The system infers whether it is simple or complex and returns one spec with grouped test cases.</p>
+
+  <label for="requirement">Requirement or problem statement</label>
+  <textarea id="requirement" placeholder="e.g. Age must be between 18 and 60&#10;&#10;Or: Given an array of n integers, 1 <= n <= 10^5"></textarea>
+  <div class="row">
+    <button class="btn btn-primary" id="generate">Generate</button>
+  </div>
+
+  <label for="code" style="margin-top:1.5rem;">Your code (optional — run tests and see Pass/Fail)</label>
+  <p class="hint">Python script. Read input from <code>sys.stdin</code>.</p>
+  <textarea id="code" placeholder="import sys&#10;x = int(sys.argv[1]) if len(sys.argv) > 1 else 0&#10;print('OK' if 18 <= x <= 60 else 'Fail')" style="min-height:90px;"></textarea>
+  <div class="row" style="margin-top:0.5rem;">
+    <div class="checkbox-wrap">
+      <input type="checkbox" id="runWithCode">
+      <label for="runWithCode" style="margin:0">Run tests with my code</label>
+    </div>
+  </div>
+
+  <p id="loading" class="loading" style="display:none;">Generating… (LLM may take a moment)</p>
+  <p id="error" class="error-msg" style="display:none;"></p>
+
+  <!-- JSON Spec — plain block -->
+  <section class="section" id="specSection" style="display:none;">
+    <div class="section-title">Structured JSON Spec</div>
+    <div class="json-block" id="specJson"></div>
+  </section>
+
+  <!-- Test Cases — grouped dropdowns -->
+  <section class="section" id="testSection" style="display:none;">
+    <div class="section-title">Test Cases</div>
+    <div id="testList"></div>
+  </section>
+
+  <!-- Run Results — pass/fail dropdowns -->
+  <section class="section" id="runResultsSection" style="display:none;">
+    <div class="section-title">Run Results</div>
+    <p id="runSummary" class="run-summary"></p>
+    <div id="runResultsList"></div>
+  </section>
+</div>
+
+<script>
+  const requirementEl     = document.getElementById('requirement');
+  const generateBtn       = document.getElementById('generate');
+  const loadingEl         = document.getElementById('loading');
+  const errorEl           = document.getElementById('error');
+  const specSection       = document.getElementById('specSection');
+  const specJsonEl        = document.getElementById('specJson');
+  const testSection       = document.getElementById('testSection');
+  const testList          = document.getElementById('testList');
+  const runResultsSection = document.getElementById('runResultsSection');
+  const runSummaryEl      = document.getElementById('runSummary');
+  const runResultsList    = document.getElementById('runResultsList');
+  const codeEl            = document.getElementById('code');
+  const runWithCodeEl     = document.getElementById('runWithCode');
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+  function highlightJson(str) {
+    return str
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"([^"]+)":/g,'<span class="key">"$1"</span>:')
+      .replace(/: (\d+)/g,': <span class="num">$1</span>')
+      .replace(/: (null|true|false)/g,': <span class="null">$1</span>')
+      .replace(/: "([^"]*)"/g,': <span class="str">"$1"</span>');
+  }
+
+  function chevron() {
+    return `<svg class="chevron" viewBox="0 0 16 16"><polyline points="4,6 8,10 12,6"/></svg>`;
+  }
+
+  function drop(iconClass, icon, title, count, label, bodyHtml) {
+    const badge = `<span class="drop-count">${count} ${label}${count !== 1 ? 's' : ''}</span>`;
+    return `<details class="drop">
+      <summary class="drop-summary">
+        ${chevron()}
+        <span class="drop-icon ${iconClass}">${icon}</span>
+        <span class="drop-title">${title}</span>
+        ${badge}
+      </summary>
+      <div class="drop-body">${bodyHtml}</div>
+    </details>`;
+  }
+
+  /* ── Test Cases ── */
+  const TC_META = {
+    boundary:   { label: 'Boundary',   icon: '〔〕', iconClass: 'icon-boundary' },
+    edge:       { label: 'Edge',       icon: '◇',   iconClass: 'icon-edge' },
+    security:   { label: 'Security',   icon: '🔒',  iconClass: 'icon-security' },
+    constraint: { label: 'Constraint', icon: '≡',   iconClass: 'icon-constraint' },
+    other:      { label: 'Other',      icon: '◈',   iconClass: 'icon-other' },
+  };
+  const TC_ORDER = ['boundary','edge','security','constraint','other'];
+
+  function normalizeType(t) {
+    const s = (t || '').toLowerCase();
+    if (s.includes('bound')) return 'boundary';
+    if (s.includes('edge'))  return 'edge';
+    if (s.includes('sec'))   return 'security';
+    if (s.includes('const')) return 'constraint';
+    return 'other';
+  }
+
+  function vpill(v) {
+    if (v === true  || v === 'valid'   || v === 'pass')  return `<span class="vpill vpill-valid">Valid</span>`;
+    if (v === false || v === 'invalid' || v === 'fail')  return `<span class="vpill vpill-invalid">Invalid</span>`;
+    return `<span class="vpill vpill-unknown">—</span>`;
+  }
+
+  function buildTestGroups(testCases) {
+    const groups = {};
+    testCases.forEach(tc => {
+      const key = normalizeType(tc.type);
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(tc);
+    });
+    return TC_ORDER.filter(k => groups[k]).map(key => {
+      const items = groups[key];
+      const meta  = TC_META[key];
+      const rows  = items.map(tc => {
+        let input = tc.input;
+        if (typeof input === 'object') input = JSON.stringify(input);
+        const rawV = tc.valid !== undefined ? tc.valid : tc.validity !== undefined ? tc.validity : null;
+        const desc = tc.description ? `<div class="tc-desc">${esc(tc.description)}</div>` : '';
+        return `<div class="tc-row">
+          <div class="tc-left"><div class="tc-input">${esc(String(input))}</div>${desc}</div>
+          ${vpill(rawV)}
+        </div>`;
+      }).join('');
+      return drop(meta.iconClass, meta.icon, meta.label, items.length, 'case', rows);
+    }).join('');
+  }
+
+  function buildComplexGroups(testCases) {
+    const size = 3; let html = '';
+    for (let i = 0; i < testCases.length; i += size) {
+      const chunk = testCases.slice(i, i + size);
+      const rows = chunk.map(tc => `
+        <div class="tc-row" style="display:block;">
+          <div class="tc-input" style="margin-bottom:0.4rem;">${esc((tc.formatted||'').slice(0,120))}</div>
+          <pre style="margin:0;font-size:0.78rem;color:var(--muted);white-space:pre-wrap;word-break:break-all;">${esc(JSON.stringify(tc.inputs,null,2))}</pre>
+        </div>`).join('');
+      html += drop('icon-other','◈',`Cases ${i+1}–${Math.min(i+size,testCases.length)}`, chunk.length, 'case', rows);
+    }
+    return html;
+  }
+
+  /* ── Run Results ── */
+  function buildRunGroups(results) {
+    const passed = results.filter(r => (r.status||'').toLowerCase() === 'pass');
+    const failed = results.filter(r => (r.status||'').toLowerCase() !== 'pass');
+
+    function rows(list) {
+      return list.map((r, i) => {
+        const raw    = String(r.formatted_input || r.input || '');
+        const out    = (r.output||'').slice(0,300);
+        const err    = (r.error ||'').slice(0,300);
+        const status = (r.status||'').toLowerCase();
+        const statusColor = status === 'pass' ? 'var(--success)' : status === 'timeout' || status === 'error' ? 'var(--warning)' : 'var(--danger)';
+        return `<div class="rr-row">
+          <div class="rr-top">
+            <span class="rr-num">#${i+1}</span>
+            <span style="font-size:0.72rem;font-weight:600;color:${statusColor};font-family:'JetBrains Mono',monospace;">${esc(r.status||'')}</span>
+            <span class="rr-input">${esc(raw.slice(0,90))}${raw.length>90?'…':''}</span>
+          </div>
+          ${out||err ? `<div class="rr-detail">
+            ${out ? `<div>stdout: <span>${esc(out)}</span></div>` : ''}
+            ${err ? `<div>stderr: <span class="err">${esc(err)}</span></div>` : ''}
+          </div>` : ''}
+        </div>`;
+      }).join('');
+    }
+
+    let html = '';
+    if (passed.length) html += drop('icon-pass','✓','Passed', passed.length, 'test', rows(passed));
+    if (failed.length) html += drop('icon-fail','✗','Failed', failed.length, 'test', rows(failed));
+    return html;
+  }
+
+  function showError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+  function hideError()    { errorEl.style.display = 'none'; }
+
+  generateBtn.addEventListener('click', async () => {
+    const requirement = requirementEl.value.trim();
+    if (!requirement) { showError('Please enter a requirement.'); return; }
+    hideError();
+    generateBtn.disabled = true;
+    loadingEl.style.display = 'block';
+    specSection.style.display = 'none';
+    testSection.style.display = 'none';
+    runResultsSection.style.display = 'none';
+
+    const code = runWithCodeEl.checked ? (codeEl.value||'').trim() : '';
+    try {
+      const res  = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requirement, code: code||undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error||'Request failed'); return; }
+      if (data.error) showError(data.error);
+
+      if (data.spec) {
+        specSection.style.display = 'block';
+        specJsonEl.innerHTML = highlightJson(JSON.stringify(data.spec, null, 2));
+      }
+
+      if (data.test_cases && data.test_cases.length) {
+        testSection.style.display = 'block';
+        const isComplex = data.test_cases[0].formatted !== undefined && data.test_cases[0].inputs !== undefined;
+        testList.innerHTML = isComplex ? buildComplexGroups(data.test_cases) : buildTestGroups(data.test_cases);
+      }
+
+      if (data.run_error) showError('Run error: ' + data.run_error);
+
+      if (data.run_results && data.run_results.length) {
+        runResultsSection.style.display = 'block';
+        const passed = data.run_results.filter(r => (r.status||'').toLowerCase() === 'pass').length;
+        runSummaryEl.innerHTML = `<span class="pass">${passed} passed</span> / <span class="fail">${data.run_results.length - passed} failed</span> out of ${data.run_results.length}`;
+        runResultsList.innerHTML = buildRunGroups(data.run_results);
+      }
+    } catch(e) {
+      showError('Network error: ' + e.message);
+    } finally {
+      generateBtn.disabled = false;
+      loadingEl.style.display = 'none';
+    }
+  });
+</script>
+</body>
+</html>

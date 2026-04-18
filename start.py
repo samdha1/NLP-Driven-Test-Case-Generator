@@ -1,102 +1,93 @@
-import sys
+"""
+NLP-Driven Test Case Generator — Entry point.
+Single pipeline: requirement → parse (auto simple/complex) → one spec → test cases → optional run.
+"""
+
+import json
 import os
+import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+_root = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, _root)
+_src = os.path.join(_root, "src")
+if _src not in sys.path:
+    sys.path.insert(0, _src)
 
-def generate_tests(requirement, test_type="all"):
+DEFAULT_TARGET_SCRIPT = os.path.join(_root, "examples", "example_programs.py")
+
+
+def generate_tests(requirement, test_type="all", target_script=None, run_tests_flag=True):
     try:
-        from src.nlp_testgen.parser.spec_parser import SpecParser
-        from src.nlp_testgen.generator.test_generator import TestGenerator
+        from pipeline_api import run_pipeline
 
-        print(f" LLM-POWERED TEST CASE GENERATOR")
-        print(f"\n Requirement: {requirement}")
+        target_script = target_script or (DEFAULT_TARGET_SCRIPT if os.path.isfile(DEFAULT_TARGET_SCRIPT) else None)
+        result = run_pipeline(
+            requirement,
+            code=None,
+            target_script=target_script if run_tests_flag else None,
+        )
 
-        print(f"\n[1/2]  Parsing ...")
-        parser = SpecParser()
-        result = parser.parse(requirement)
-        if isinstance(result, list): specs = result
-        else: specs = [result]
-        generator = TestGenerator()
-        for i, spec in enumerate(specs):
-            field_label = spec.get("field", f"Input {i+1}") if len(specs) > 1 else "Input"
-            print(f"\n Parsed Specification — {field_label}:")
-            print(f"   Min:         {spec.get('min', 'N/A')}")
-            print(f"   Max:         {spec.get('max', 'N/A')}")
-            print(f"   Data Type:   {spec.get('data_type', 'N/A')}")
-            print(f"   Constraints: {spec.get('constraints', [])}")
-            print(f"\n[2/2]  Generating test cases for {field_label}...")
-            test_cases = generator.generate_test_cases(spec, test_type)
+        print(" NLP-Driven Test Case Generator")
+        print("\n Requirement: " + requirement)
 
-            print(f" GENERATED TEST CASES — {field_label}")
-            print(f"\n")
-            print(test_cases)
-        print(" Test generation completed!")
+        spec = result.get("spec")
+        if not spec:
+            print("\n Error: " + (result.get("error") or "Could not parse"))
+            return
+        print("\n Structured JSON Spec:")
+        print(json.dumps(spec, indent=2))
 
+        test_cases = result.get("test_cases", [])
+        print(f"\n Test cases: {len(test_cases)}")
+        for j, tc in enumerate(test_cases[:25], 1):
+            if tc.get("formatted") is not None and tc.get("inputs") is not None:
+                print(f"   {j}. [complex] " + (tc["formatted"][:80].replace("\n", " | ") + ("…" if len(tc.get("formatted", "")) > 80 else "")))
+            else:
+                inp = tc.get("input", "")
+                typ = tc.get("type", "")
+                print(f"   {j}. [{typ}] {inp}")
+        if len(test_cases) > 25:
+            print(f"   ... and {len(test_cases) - 25} more")
+
+        run_results = result.get("run_results", [])
+        if run_results:
+            passed = sum(1 for r in run_results if (r.get("status") or "").lower() == "pass")
+            print(f"\n Run results: {passed}/{len(run_results)} passed")
+            for j, res in enumerate(run_results[:15], 1):
+                print(f"   {j}. {res.get('status', '?')}  input: {str(res.get('input', ''))[:50]}")
+        print("\n Done.")
     except Exception as e:
-        print(f"\n Error: {e}")
-        print("\n Troubleshooting:")
-        print("   1. Login to HuggingFace:")
-        print("      pip install huggingface-hub")
-        print("      huggingface-cli login")
-        print("\n   2. Accept Llama license:")
-        print("      https://huggingface.co/meta-llama/Llama-3.2-3B-Instruct")
-        print()
+        print("\n Error: " + str(e))
+        print("  pip install z3-solver  ;  huggingface-cli login  (if using LLM)")
 
 
 def interactive_mode():
-    print(" LLM-POWERED TEST CASE GENERATOR")
-    test_type = "all"
+    print(" NLP-Driven Test Case Generator")
     while True:
         try:
-            user_input = input("\n Enter requirement (or command): ").strip()
-
+            user_input = input("\n Enter requirement (or exit): ").strip()
             if not user_input:
                 continue
-            if user_input.lower() in ['exit', 'quit', 'q']:
-                print("\n End!\n")
+            if user_input.lower() in ("exit", "quit", "q"):
+                print("\n Bye.\n")
                 break
-            if user_input.lower() == 'help':
-                print("\n Example Requirements:")
-                print("   • Age must be between 18 and 65")
-                print("   • Password 8-20 characters with special chars")
-                print("   • Port number 1 to 65535")
-                print("   • Username field for login security")
-                print("   • Temperature reading -40 to 125 degrees")
-                print("   • Age between 45 and 78 divisible by 2")
-                print("\n   Multiple input examples:")
-                print("   • Age between 18 and 65, password must be 8 to 20 characters")
-                print("   • Score from 0 to 100; grade must be between 1 and 5")
+            if user_input.lower() == "help":
+                print("  Examples: Age between 18 and 60  |  Array of n integers, 1 <= n <= 100")
                 continue
-            if user_input.lower() == 'boundary':
-                test_type = 'boundary'
-                print(" Mode set to: Boundary tests only")
-                continue
-            if user_input.lower() == 'security':
-                test_type = 'security'
-                print(" Mode set to: Security tests only")
-                continue
-            if user_input.lower() == 'edge':
-                test_type = 'edge'
-                print(" Mode set to: Edge case tests only")
-                continue
-            if user_input.lower() == 'all':
-                test_type = 'all'
-                print(" Mode set to: All test types")
-                continue
-            generate_tests(user_input, test_type)
-
+            generate_tests(user_input)
         except KeyboardInterrupt:
-            print("\n\n End!\n")
+            print("\n\n Bye.\n")
             break
         except Exception as e:
-            print(f"\n Error: {e}\n")
+            print("\n Error: " + str(e) + "\n")
+
 
 def main():
     if len(sys.argv) > 1:
-        requirement = " ".join(sys.argv[1:])
-        generate_tests(requirement)
+        generate_tests(" ".join(sys.argv[1:]))
     else:
         interactive_mode()
+
 
 if __name__ == "__main__":
     main()
