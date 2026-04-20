@@ -68,5 +68,7 @@ def run_tests(target_script: str, test_cases: list) -> list:
         if isinstance(tc, dict):
             res["type"] = tc.get("type", "")
             res["label"] = tc.get("label", "")
+            res["category"] = tc.get("category", "")
+            res["severity"] = tc.get("severity", "")
         results.append(res)
     return results

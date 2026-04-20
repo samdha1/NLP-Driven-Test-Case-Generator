@@ -4,185 +4,511 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NLP Test Case Generator</title>
+  <meta name="description" content="AI-powered test case generator with security analysis, green computing metrics, and analytics dashboard.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0d1117;
-      --surface: #161b22;
-      --border: #30363d;
-      --text: #e6edf3;
-      --muted: #8b949e;
-      --accent: #58a6ff;
-      --success: #3fb950;
-      --warning: #d29922;
-      --danger: #f85149;
+      --bg: #f8fafb;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #0f766e;
+      --accent-light: #14b8a6;
+      --accent-bg: rgba(15,118,110,0.06);
+      --accent-bg2: rgba(15,118,110,0.1);
+      --success: #16a34a;
+      --success-bg: rgba(22,163,74,0.08);
+      --warning: #d97706;
+      --warning-bg: rgba(217,119,6,0.08);
+      --danger: #dc2626;
+      --danger-bg: rgba(220,38,38,0.08);
+      --info: #2563eb;
+      --info-bg: rgba(37,99,235,0.08);
+      --purple: #7c3aed;
+      --green-leaf: #15803d;
+      --green-leaf-bg: rgba(21,128,61,0.07);
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
-    .container { max-width: 900px; margin: 0 auto; padding: 2rem; }
-    h1 { font-weight: 700; font-size: 1.75rem; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
-    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
-    label { display: block; font-weight: 600; margin-bottom: 0.5rem; font-size: 0.9rem; }
-    textarea {
-      width: 100%; min-height: 120px; padding: 1rem;
-      font-family: 'JetBrains Mono', monospace; font-size: 0.9rem;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; font-family: 'Outfit', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    ::selection { background: var(--accent-light); color: #fff; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface-2); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* -- Header -- */
+    .header {
+      padding: 1.5rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { max-width: 1200px; margin: 0 auto; }
+    .header h1 {
+      font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+    .header .subtitle { color: var(--muted); font-size: 0.88rem; margin-top: 0.2rem; }
+
+    /* -- Layout -- */
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* -- Card -- */
+    .card {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 8px; color: var(--text); resize: vertical;
+      border-radius: 10px; overflow: hidden; transition: border-color 0.2s;
     }
-    textarea::placeholder { color: var(--muted); }
-    .row { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
-    .checkbox-wrap { display: flex; align-items: center; gap: 0.5rem; }
-    .checkbox-wrap input { width: 18px; height: 18px; accent-color: var(--accent); }
-    .btn { font-family: 'Outfit', sans-serif; font-weight: 600; padding: 0.65rem 1.5rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.95rem; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { filter: brightness(1.1); }
-    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .card:hover { border-color: var(--border-hover); }
+    .card-header {
+      padding: 0.75rem 1.15rem;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+      font-weight: 600; font-size: 0.85rem; color: var(--text);
+    }
+    .card-header .icon-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .card-body { padding: 1rem 1.15rem; }
 
-    .section { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border); }
-    .section-title { font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--accent); font-weight: 600; }
+    /* -- Requirement textarea -- */
+    .req-textarea {
+      width: 100%; min-height: 120px; padding: 0.85rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); resize: vertical; outline: none;
+      transition: border-color 0.2s;
+    }
+    .req-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    .req-textarea::placeholder { color: var(--muted); }
 
-    /* ── JSON spec — plain as before ── */
+    /* -- Code Editor -- */
+    .editor-wrap {
+      position: relative; background: var(--surface-2);
+      border-radius: 0 0 10px 10px; min-height: 180px;
+    }
+    .editor-gutter {
+      position: absolute; left: 0; top: 0; bottom: 0; width: 40px;
+      background: var(--surface); border-right: 1px solid var(--border);
+      padding: 0.75rem 0; text-align: right;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.72rem;
+      color: var(--muted); line-height: 1.65; user-select: none; overflow: hidden;
+    }
+    .editor-textarea {
+      width: 100%; min-height: 180px; padding: 0.75rem 0.85rem 0.75rem 52px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      background: transparent; border: none; color: var(--text);
+      resize: vertical; outline: none; line-height: 1.65; tab-size: 4;
+    }
+    .editor-textarea::placeholder { color: var(--border-hover); }
+    .editor-status {
+      padding: 0.35rem 0.85rem; display: flex; align-items: center; justify-content: space-between;
+      font-size: 0.7rem; color: var(--muted); border-top: 1px solid var(--border);
+      background: var(--surface); font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* -- Buttons -- */
+    .btn {
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+      padding: 0.6rem 1.5rem; border-radius: 6px; border: none;
+      cursor: pointer; font-size: 0.88rem; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-primary {
+      background: var(--accent); color: #fff;
+    }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .row { display: flex; align-items: center; gap: 1rem; margin-top: 0.85rem; flex-wrap: wrap; }
+    .checkbox-wrap { display: flex; align-items: center; gap: 0.45rem; font-size: 0.82rem; }
+    .checkbox-wrap input { width: 15px; height: 15px; accent-color: var(--accent); }
+
+    /* -- JSON Spec -- */
     .json-block {
-      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
-      padding: 1rem 1.25rem; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem;
-      overflow-x: auto; white-space: pre-wrap; word-break: break-all;
+      background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px;
+      padding: 0.85rem 1rem; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+      overflow-x: auto; white-space: pre-wrap; word-break: break-all; line-height: 1.7;
     }
     .json-block .key  { color: var(--accent); }
-    .json-block .num  { color: #79c0ff; }
+    .json-block .num  { color: var(--info); }
     .json-block .str  { color: var(--success); }
     .json-block .null { color: var(--muted); }
 
-    /* ── Shared dropdown shell ── */
-    .drop {
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 0.75rem;
-      overflow: hidden;
+    /* ================================================================
+       GREEN COMPUTING / CO2 EMISSIONS
+       ================================================================ */
+    .green-card {
+      border-color: rgba(21,128,61,0.25);
+    }
+    .green-card .card-header {
+      background: var(--green-leaf-bg);
+      color: var(--green-leaf);
+    }
+    .green-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.85rem; }
+    .green-metric {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.85rem; text-align: center;
+    }
+    .green-metric-value {
+      font-size: 1.5rem; font-weight: 700; line-height: 1.2;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .green-metric-value.co2     { color: var(--green-leaf); }
+    .green-metric-value.energy  { color: var(--info); }
+    .green-metric-value.time    { color: var(--accent); }
+    .green-metric-value.equiv   { color: var(--warning); }
+    .green-metric-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; font-weight: 500; }
+    .green-metric-sub { font-size: 0.65rem; color: var(--muted); margin-top: 0.1rem; }
+
+    .green-bar-wrap { margin-top: 1rem; }
+    .green-bar-label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.35rem; display: flex; justify-content: space-between; }
+    .green-bar-track { height: 8px; background: var(--surface-2); border-radius: 4px; overflow: hidden; border: 1px solid var(--border); }
+    .green-bar-fill { height: 100%; border-radius: 4px; transition: width 0.8s ease; }
+    .green-bar-fill.low    { background: linear-gradient(90deg, #16a34a, #22c55e); }
+    .green-bar-fill.medium { background: linear-gradient(90deg, #d97706, #f59e0b); }
+    .green-bar-fill.high   { background: linear-gradient(90deg, #dc2626, #ef4444); }
+
+    .green-equivalences { margin-top: 1rem; display: grid; gap: 0.4rem; }
+    .green-equiv-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-size: 0.78rem; color: var(--muted);
+      padding: 0.4rem 0.65rem; background: var(--surface-2);
+      border-radius: 6px; border: 1px solid var(--border);
+    }
+    .green-equiv-icon { width: 24px; text-align: center; font-size: 0.8rem; flex-shrink: 0; color: var(--green-leaf); }
+    .green-equiv-value { font-weight: 600; color: var(--text); font-family: 'JetBrains Mono', monospace; }
+
+    /* ================================================================
+       ANALYTICS
+       ================================================================ */
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.85rem; margin-bottom: 1.25rem; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.85rem; text-align: center;
       transition: border-color 0.15s;
+    }
+    .stat-card:hover { border-color: var(--border-hover); }
+    .stat-value {
+      font-size: 1.6rem; font-weight: 700; line-height: 1.1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-value.green  { color: var(--success); }
+    .stat-value.red    { color: var(--danger); }
+    .stat-value.yellow { color: var(--warning); }
+    .stat-value.blue   { color: var(--info); }
+    .stat-value.purple { color: var(--purple); }
+    .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; font-weight: 500; }
+
+    .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+    @media (max-width: 700px) { .chart-row { grid-template-columns: 1fr; } }
+    .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .chart-title { font-weight: 600; font-size: 0.82rem; margin-bottom: 0.85rem; color: var(--muted); }
+
+    /* Bar chart */
+    .bar-chart { display: flex; flex-direction: column; gap: 0.4rem; }
+    .bar-row { display: flex; align-items: center; gap: 0.6rem; }
+    .bar-label { width: 90px; font-size: 0.68rem; color: var(--muted); text-align: right; font-family: 'JetBrains Mono', monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { flex: 1; height: 20px; background: var(--surface-2); border-radius: 4px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.6s ease; display: flex; align-items: center; padding-left: 6px; font-size: 0.65rem; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: #fff; min-width: 20px; }
+
+    /* Donut */
+    .donut-wrap { display: flex; align-items: center; justify-content: center; gap: 1.25rem; }
+    .donut-svg { width: 110px; height: 110px; }
+    .donut-legend { display: flex; flex-direction: column; gap: 0.35rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .legend-label { color: var(--muted); }
+    .legend-value { color: var(--text); font-weight: 600; font-family: 'JetBrains Mono', monospace; }
+
+    /* Severity badges */
+    .sev { display: inline-block; font-size: 0.62rem; font-weight: 600; padding: 0.08rem 0.4rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.03em; }
+    .sev-critical { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
+    .sev-high     { background: var(--warning-bg); color: var(--warning); border: 1px solid rgba(217,119,6,0.2); }
+    .sev-medium   { background: var(--info-bg); color: var(--info); border: 1px solid rgba(37,99,235,0.2); }
+    .sev-low      { background: rgba(100,116,139,0.08); color: var(--muted); border: 1px solid rgba(100,116,139,0.2); }
+
+    /* -- Compiler Pipeline -- */
+    .pipeline-container {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem;
+    }
+    .pipeline-stage {
+      display: flex; align-items: center; gap: 1rem; padding: 0.75rem 1rem;
+      background: var(--surface-2); border-radius: 6px; border: 1px solid var(--border);
+    }
+    .stage-icon { font-size: 1.2rem; background: var(--surface); width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--border); }
+    .stage-info { flex: 1; }
+    .stage-name { font-weight: 600; font-size: 0.85rem; color: var(--text); }
+    .stage-desc { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; font-family: 'JetBrains Mono', monospace;}
+    .pipeline-arrow { text-align: center; color: var(--muted); font-size: 1.2rem; line-height: 1; margin: 0.2rem 0; }
+
+    /* -- Dropdowns -- */
+    .drop {
+      border: 1px solid var(--border); border-radius: 8px;
+      margin-bottom: 0.6rem; overflow: hidden; transition: border-color 0.15s;
     }
     .drop[open] { border-color: var(--accent); }
     .drop-summary {
-      display: flex; align-items: center; gap: 0.85rem;
-      padding: 0.9rem 1.1rem; cursor: pointer;
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0.75rem 1rem; cursor: pointer;
       list-style: none; background: var(--surface);
       user-select: none;
     }
     .drop-summary::-webkit-details-marker { display: none; }
     .chevron {
-      flex-shrink: 0; width: 16px; height: 16px;
+      flex-shrink: 0; width: 14px; height: 14px;
       fill: none; stroke: var(--muted); stroke-width: 2;
       stroke-linecap: round; stroke-linejoin: round;
       transition: transform 0.2s;
     }
-    .drop[open] .chevron { transform: rotate(90deg); }
+    .drop[open] .chevron { transform: rotate(90deg); stroke: var(--accent); }
     .drop-icon {
-      width: 34px; height: 34px; border-radius: 8px;
+      width: 30px; height: 30px; border-radius: 6px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1rem; flex-shrink: 0;
+      font-size: 0.82rem; flex-shrink: 0; font-weight: 600;
     }
-    .icon-boundary   { background: rgba(88,166,255,0.12); }
-    .icon-edge       { background: rgba(210,153,34,0.12); }
-    .icon-security   { background: rgba(248,81,73,0.12); }
-    .icon-constraint { background: rgba(63,185,80,0.12); }
-    .icon-other      { background: rgba(139,148,158,0.12); }
-    .icon-pass       { background: rgba(63,185,80,0.10); }
-    .icon-fail       { background: rgba(248,81,73,0.10); }
-    .drop-title { font-weight: 600; font-size: 1rem; flex: 1; }
+    .icon-boundary   { background: var(--accent-bg); color: var(--accent); }
+    .icon-edge       { background: var(--warning-bg); color: var(--warning); }
+    .icon-security   { background: var(--danger-bg); color: var(--danger); }
+    .icon-constraint { background: var(--info-bg); color: var(--info); }
+    .icon-other      { background: rgba(100,116,139,0.08); color: var(--muted); }
+    .icon-pass       { background: var(--success-bg); color: var(--success); }
+    .icon-fail       { background: var(--danger-bg); color: var(--danger); }
+    .drop-title { font-weight: 600; font-size: 0.88rem; flex: 1; }
     .drop-count {
-      font-size: 0.78rem; font-family: 'JetBrains Mono', monospace;
-      color: var(--muted); background: rgba(139,148,158,0.08);
-      padding: 0.15rem 0.55rem; border-radius: 20px;
-      border: 1px solid var(--border);
+      font-size: 0.7rem; font-family: 'JetBrains Mono', monospace;
+      color: var(--muted); background: var(--surface-2);
+      padding: 0.1rem 0.5rem; border-radius: 20px; border: 1px solid var(--border);
     }
-    .drop-body { background: var(--bg); padding: 0.6rem 0.85rem 0.85rem; display: grid; gap: 0.45rem; }
+    .drop-body { background: var(--bg); padding: 0.5rem 0.75rem 0.75rem; display: grid; gap: 0.4rem; }
 
-    /* ── Test case rows ── */
+    /* -- Test case rows -- */
     .tc-row {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: 0.65rem 0.9rem;
-      display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
+      border-radius: 6px; padding: 0.55rem 0.8rem;
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem;
     }
     .tc-left { flex: 1; min-width: 0; }
-    .tc-input { font-family: 'JetBrains Mono', monospace; font-size: 0.83rem; word-break: break-all; white-space: pre-wrap; }
-    .tc-desc  { font-size: 0.76rem; color: var(--muted); margin-top: 0.2rem; }
+    .tc-input { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; word-break: break-all; white-space: pre-wrap; }
+    .tc-meta { display: flex; gap: 0.35rem; margin-top: 0.25rem; flex-wrap: wrap; align-items: center; }
+    .tc-cat { font-size: 0.68rem; color: var(--info); }
     .vpill {
-      flex-shrink: 0; font-size: 0.7rem; font-weight: 600;
-      padding: 0.15rem 0.55rem; border-radius: 20px; white-space: nowrap;
+      flex-shrink: 0; font-size: 0.62rem; font-weight: 600;
+      padding: 0.08rem 0.45rem; border-radius: 20px; white-space: nowrap;
       font-family: 'JetBrains Mono', monospace;
     }
-    .vpill-valid   { background: rgba(63,185,80,0.15);   color: var(--success); border: 1px solid rgba(63,185,80,0.3); }
-    .vpill-invalid { background: rgba(248,81,73,0.15);   color: var(--danger);  border: 1px solid rgba(248,81,73,0.3); }
-    .vpill-unknown { background: rgba(139,148,158,0.08); color: var(--muted);   border: 1px solid var(--border); }
+    .vpill-valid   { background: var(--success-bg); color: var(--success); border: 1px solid rgba(22,163,74,0.2); }
+    .vpill-invalid { background: var(--danger-bg); color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
+    .vpill-unknown { background: rgba(100,116,139,0.06); color: var(--muted); border: 1px solid var(--border); }
 
-    /* ── Run result rows ── */
+    /* -- Run result rows -- */
     .rr-row {
       background: var(--surface); border: 1px solid var(--border);
-      border-radius: 7px; padding: 0.65rem 0.9rem;
-      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      border-radius: 6px; padding: 0.55rem 0.8rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.75rem;
     }
-    .rr-top { display: flex; align-items: center; gap: 0.65rem; }
-    .rr-num { color: var(--muted); font-size: 0.75rem; flex-shrink: 0; }
+    .rr-top { display: flex; align-items: center; gap: 0.55rem; }
+    .rr-num { color: var(--muted); font-size: 0.68rem; flex-shrink: 0; }
     .rr-input { flex: 1; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .rr-detail { margin-top: 0.4rem; font-size: 0.78rem; color: var(--muted); display: grid; gap: 0.2rem; }
+    .rr-detail { margin-top: 0.3rem; font-size: 0.7rem; color: var(--muted); display: grid; gap: 0.15rem; }
     .rr-detail span { color: var(--text); }
     .rr-detail .err { color: var(--danger); }
 
-    .error-msg { color: var(--danger); padding: 0.75rem; background: rgba(248,81,73,0.1); border-radius: 8px; margin-top: 1rem; }
-    .loading { color: var(--muted); margin-top: 1rem; }
-    .hint { font-size: 0.8rem; color: var(--muted); margin: 0.25rem 0 0.5rem; }
-    .hint code { background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px; }
-    .run-summary { font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .error-msg { color: var(--danger); padding: 0.65rem 0.85rem; background: var(--danger-bg); border: 1px solid rgba(220,38,38,0.15); border-radius: 6px; margin-top: 0.85rem; font-size: 0.85rem; }
+    .loading {
+      color: var(--accent); margin-top: 0.85rem; font-size: 0.85rem;
+      display: flex; align-items: center; gap: 0.45rem;
+    }
+    .loading .spinner {
+      width: 14px; height: 14px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .section { margin-top: 1.75rem; }
+    .section-title {
+      font-size: 1rem; margin-bottom: 0.65rem; font-weight: 600;
+      color: var(--text); display: flex; align-items: center; gap: 0.45rem;
+    }
+    .section-title .st-icon {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .run-summary { font-size: 0.85rem; margin-bottom: 0.65rem; }
     .run-summary .pass { color: var(--success); font-weight: 600; }
-    .run-summary .fail { color: var(--danger);  font-weight: 600; }
+    .run-summary .fail { color: var(--danger); font-weight: 600; }
+
+    label { display: block; font-weight: 600; margin-bottom: 0.35rem; font-size: 0.82rem; }
+    .hint { font-size: 0.72rem; color: var(--muted); margin: 0.15rem 0 0.4rem; }
+    .hint code { background: var(--surface-2); padding: 0.08rem 0.25rem; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--accent); }
+    .fade-in { animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
 <body>
-<div class="container">
-  <h1>NLP-Driven Test Case Generator</h1>
-  <p class="subtitle">Describe your requirement in natural language. The system infers whether it is simple or complex and returns one spec with grouped test cases.</p>
 
-  <label for="requirement">Requirement or problem statement</label>
-  <textarea id="requirement" placeholder="e.g. Age must be between 18 and 60&#10;&#10;Or: Given an array of n integers, 1 <= n <= 10^5"></textarea>
-  <div class="row">
-    <button class="btn btn-primary" id="generate">Generate</button>
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <h1>NLP-Driven Test Case Generator</h1>
+    <p class="subtitle">Describe your requirement in natural language. The system generates spec, test cases, security vectors, and green computing analytics.</p>
   </div>
+</div>
 
-  <label for="code" style="margin-top:1.5rem;">Your code (optional — run tests and see Pass/Fail)</label>
-  <p class="hint">Python script. Read input from <code>sys.stdin</code>.</p>
-  <textarea id="code" placeholder="import sys&#10;x = int(sys.argv[1]) if len(sys.argv) > 1 else 0&#10;print('OK' if 18 <= x <= 60 else 'Fail')" style="min-height:90px;"></textarea>
-  <div class="row" style="margin-top:0.5rem;">
-    <div class="checkbox-wrap">
-      <input type="checkbox" id="runWithCode">
-      <label for="runWithCode" style="margin:0">Run tests with my code</label>
+<div class="container">
+
+  <!-- Input Section -->
+  <div class="grid-2">
+    <!-- Left: Requirement -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon-dot" style="background:var(--accent);"></span>
+        Requirement
+      </div>
+      <div class="card-body">
+        <textarea id="requirement" class="req-textarea" placeholder="e.g. Age must be between 18 and 60&#10;&#10;Or: Username must be a string between 3 and 20 characters&#10;&#10;Or: Given an array of n integers, 1 <= n <= 10^5"></textarea>
+        <div class="row">
+          <button class="btn btn-primary" id="generate">Generate</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Code Editor -->
+    <div class="card">
+      <div class="card-header">
+        <span class="icon-dot" style="background:var(--info);"></span>
+        Code Editor
+        <span style="margin-left:auto; font-size:0.7rem; color:var(--muted);">Python</span>
+      </div>
+      <div class="editor-wrap">
+        <div class="editor-gutter" id="editorGutter"></div>
+        <textarea id="code" class="editor-textarea" spellcheck="false"
+          placeholder="# Write your Python code here&#10;import sys&#10;&#10;x = int(sys.argv[1]) if len(sys.argv) > 1 else 0&#10;print('OK' if 18 <= x <= 60 else 'Fail')"></textarea>
+      </div>
+      <div class="editor-status">
+        <span>Python 3 | UTF-8</span>
+        <span id="editorLines">Lines: 0</span>
+      </div>
+      <div class="card-body" style="padding-top:0.4rem; padding-bottom:0.65rem;">
+        <div class="checkbox-wrap">
+          <input type="checkbox" id="runWithCode">
+          <label for="runWithCode" style="margin:0; font-size:0.8rem;">Run tests against my code</label>
+        </div>
+      </div>
     </div>
   </div>
 
-  <p id="loading" class="loading" style="display:none;">Generating… (LLM may take a moment)</p>
+  <div id="loading" class="loading" style="display:none;">
+    <div class="spinner"></div> Generating (LLM may take a moment)...
+  </div>
   <p id="error" class="error-msg" style="display:none;"></p>
 
-  <!-- JSON Spec — plain block -->
-  <section class="section" id="specSection" style="display:none;">
-    <div class="section-title">Structured JSON Spec</div>
+  <!-- Compiler Pipeline -->
+  <section class="section fade-in" id="pipelineSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--accent);"></span>
+      Compiler Pipeline
+    </div>
+    <div class="pipeline-container">
+      <div class="pipeline-stage">
+        <div class="stage-icon">🔤</div>
+        <div class="stage-info">
+          <div class="stage-name">Lexical &amp; Syntax Analysis</div>
+          <div class="stage-desc">Parsed &amp; Tokenized via LLM Engine</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">↓</div>
+      <div class="pipeline-stage">
+        <div class="stage-icon">🔧</div>
+        <div class="stage-info">
+          <div class="stage-name">Semantic Analysis</div>
+          <div class="stage-desc">Constraints validated via Z3 Solver</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">↓</div>
+      <div class="pipeline-stage">
+        <div class="stage-icon">📦</div>
+        <div class="stage-info">
+          <div class="stage-name">IR Generation</div>
+          <div class="stage-desc">Unified JSON Spec generated</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">↓</div>
+      <div class="pipeline-stage">
+        <div class="stage-icon">⚙️</div>
+        <div class="stage-info">
+          <div class="stage-name">Code Generation</div>
+          <div class="stage-desc" id="pipelineCodeGen">Generating Test Cases...</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Green Computing / CO2 Emissions -->
+  <section class="section fade-in" id="greenSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--green-leaf);"></span>
+      Green Computing - Carbon Footprint
+    </div>
+    <div class="card green-card">
+      <div class="card-header">
+        <span class="icon-dot" style="background:var(--green-leaf);"></span>
+        Environmental Impact Analysis
+      </div>
+      <div class="card-body" id="greenBody"></div>
+    </div>
+  </section>
+
+  <!-- Analytics Dashboard -->
+  <section class="section fade-in" id="analyticsSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--info);"></span>
+      Test Analytics
+    </div>
+    <div class="analytics-grid" id="statsGrid"></div>
+    <div class="chart-row" id="chartsRow"></div>
+  </section>
+
+  <!-- JSON Spec -->
+  <section class="section fade-in" id="specSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--accent);"></span>
+      Structured JSON Spec
+    </div>
     <div class="json-block" id="specJson"></div>
   </section>
 
-  <!-- Test Cases — grouped dropdowns -->
-  <section class="section" id="testSection" style="display:none;">
-    <div class="section-title">Test Cases</div>
+  <!-- Test Cases -->
+  <section class="section fade-in" id="testSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--purple);"></span>
+      Test Cases
+    </div>
     <div id="testList"></div>
   </section>
 
-  <!-- Run Results — pass/fail dropdowns -->
-  <section class="section" id="runResultsSection" style="display:none;">
-    <div class="section-title">Run Results</div>
+  <!-- Run Results -->
+  <section class="section fade-in" id="runResultsSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--success);"></span>
+      Run Results
+    </div>
     <p id="runSummary" class="run-summary"></p>
     <div id="runResultsList"></div>
   </section>
+
 </div>
 
 <script>
+  /* == DOM refs == */
   const requirementEl     = document.getElementById('requirement');
   const generateBtn       = document.getElementById('generate');
   const loadingEl         = document.getElementById('loading');
@@ -196,7 +522,38 @@
   const runResultsList    = document.getElementById('runResultsList');
   const codeEl            = document.getElementById('code');
   const runWithCodeEl     = document.getElementById('runWithCode');
+  const analyticsSection  = document.getElementById('analyticsSection');
+  const statsGrid         = document.getElementById('statsGrid');
+  const chartsRow         = document.getElementById('chartsRow');
+  const editorGutter      = document.getElementById('editorGutter');
+  const editorLinesEl     = document.getElementById('editorLines');
+  const greenSection      = document.getElementById('greenSection');
+  const greenBody         = document.getElementById('greenBody');
+  const pipelineSection   = document.getElementById('pipelineSection');
+  const pipelineCodeGen   = document.getElementById('pipelineCodeGen');
 
+  /* == Code editor line numbers == */
+  function updateGutter() {
+    const lines = codeEl.value.split('\n').length;
+    let html = '';
+    for (let i = 1; i <= Math.max(lines, 8); i++) html += i + '<br>';
+    editorGutter.innerHTML = html;
+    editorLinesEl.textContent = 'Lines: ' + lines;
+  }
+  codeEl.addEventListener('input', updateGutter);
+  codeEl.addEventListener('scroll', () => { editorGutter.scrollTop = codeEl.scrollTop; });
+  codeEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const s = codeEl.selectionStart, end = codeEl.selectionEnd;
+      codeEl.value = codeEl.value.substring(0, s) + '    ' + codeEl.value.substring(end);
+      codeEl.selectionStart = codeEl.selectionEnd = s + 4;
+      updateGutter();
+    }
+  });
+  updateGutter();
+
+  /* == Helpers == */
   function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
 
   function highlightJson(str) {
@@ -209,29 +566,32 @@
   }
 
   function chevron() {
-    return `<svg class="chevron" viewBox="0 0 16 16"><polyline points="4,6 8,10 12,6"/></svg>`;
+    return '<svg class="chevron" viewBox="0 0 16 16"><polyline points="4,6 8,10 12,6"/></svg>';
   }
 
-  function drop(iconClass, icon, title, count, label, bodyHtml) {
-    const badge = `<span class="drop-count">${count} ${label}${count !== 1 ? 's' : ''}</span>`;
-    return `<details class="drop">
-      <summary class="drop-summary">
-        ${chevron()}
-        <span class="drop-icon ${iconClass}">${icon}</span>
-        <span class="drop-title">${title}</span>
-        ${badge}
-      </summary>
-      <div class="drop-body">${bodyHtml}</div>
-    </details>`;
+  function drop(iconClass, iconText, title, count, label, bodyHtml) {
+    const badge = '<span class="drop-count">' + count + ' ' + label + (count !== 1 ? 's' : '') + '</span>';
+    return '<details class="drop"><summary class="drop-summary">'
+      + chevron()
+      + '<span class="drop-icon ' + iconClass + '">' + iconText + '</span>'
+      + '<span class="drop-title">' + title + '</span>'
+      + badge
+      + '</summary><div class="drop-body">' + bodyHtml + '</div></details>';
   }
 
-  /* ── Test Cases ── */
+  function sevBadge(sev) {
+    const s = (sev || '').toLowerCase();
+    if (['critical','high','medium','low'].includes(s)) return '<span class="sev sev-' + s + '">' + s + '</span>';
+    return '';
+  }
+
+  /* == Test Cases == */
   const TC_META = {
-    boundary:   { label: 'Boundary',   icon: '〔〕', iconClass: 'icon-boundary' },
-    edge:       { label: 'Edge',       icon: '◇',   iconClass: 'icon-edge' },
-    security:   { label: 'Security',   icon: '🔒',  iconClass: 'icon-security' },
-    constraint: { label: 'Constraint', icon: '≡',   iconClass: 'icon-constraint' },
-    other:      { label: 'Other',      icon: '◈',   iconClass: 'icon-other' },
+    boundary:   { label: 'Boundary',   iconText: 'B', iconClass: 'icon-boundary' },
+    edge:       { label: 'Edge',       iconText: 'E', iconClass: 'icon-edge' },
+    security:   { label: 'Security',   iconText: 'S', iconClass: 'icon-security' },
+    constraint: { label: 'Constraint', iconText: 'C', iconClass: 'icon-constraint' },
+    other:      { label: 'Other',      iconText: 'O', iconClass: 'icon-other' },
   };
   const TC_ORDER = ['boundary','edge','security','constraint','other'];
 
@@ -245,9 +605,9 @@
   }
 
   function vpill(v) {
-    if (v === true  || v === 'valid'   || v === 'pass')  return `<span class="vpill vpill-valid">Valid</span>`;
-    if (v === false || v === 'invalid' || v === 'fail')  return `<span class="vpill vpill-invalid">Invalid</span>`;
-    return `<span class="vpill vpill-unknown">—</span>`;
+    if (v === true  || v === 'valid'   || v === 'pass')  return '<span class="vpill vpill-valid">Valid</span>';
+    if (v === false || v === 'invalid' || v === 'fail')  return '<span class="vpill vpill-invalid">Invalid</span>';
+    return '<span class="vpill vpill-unknown">--</span>';
   }
 
   function buildTestGroups(testCases) {
@@ -264,13 +624,12 @@
         let input = tc.input;
         if (typeof input === 'object') input = JSON.stringify(input);
         const rawV = tc.valid !== undefined ? tc.valid : tc.validity !== undefined ? tc.validity : null;
-        const desc = tc.description ? `<div class="tc-desc">${esc(tc.description)}</div>` : '';
-        return `<div class="tc-row">
-          <div class="tc-left"><div class="tc-input">${esc(String(input))}</div>${desc}</div>
-          ${vpill(rawV)}
-        </div>`;
+        const catLabel = tc.category ? '<span class="tc-cat">' + esc(tc.category) + '</span>' : '';
+        const sevEl = tc.severity ? sevBadge(tc.severity) : '';
+        return '<div class="tc-row"><div class="tc-left"><div class="tc-input">' + esc(String(input)) + '</div>'
+          + '<div class="tc-meta">' + catLabel + sevEl + '</div></div>' + vpill(rawV) + '</div>';
       }).join('');
-      return drop(meta.iconClass, meta.icon, meta.label, items.length, 'case', rows);
+      return drop(meta.iconClass, meta.iconText, meta.label, items.length, 'case', rows);
     }).join('');
   }
 
@@ -278,48 +637,230 @@
     const size = 3; let html = '';
     for (let i = 0; i < testCases.length; i += size) {
       const chunk = testCases.slice(i, i + size);
-      const rows = chunk.map(tc => `
-        <div class="tc-row" style="display:block;">
-          <div class="tc-input" style="margin-bottom:0.4rem;">${esc((tc.formatted||'').slice(0,120))}</div>
-          <pre style="margin:0;font-size:0.78rem;color:var(--muted);white-space:pre-wrap;word-break:break-all;">${esc(JSON.stringify(tc.inputs,null,2))}</pre>
-        </div>`).join('');
-      html += drop('icon-other','◈',`Cases ${i+1}–${Math.min(i+size,testCases.length)}`, chunk.length, 'case', rows);
+      const rows = chunk.map(tc =>
+        '<div class="tc-row" style="display:block;"><div class="tc-input" style="margin-bottom:0.3rem;">'
+        + esc((tc.formatted||'').slice(0,120)) + '</div>'
+        + '<pre style="margin:0;font-size:0.7rem;color:var(--muted);white-space:pre-wrap;word-break:break-all;">'
+        + esc(JSON.stringify(tc.inputs,null,2)) + '</pre></div>').join('');
+      html += drop('icon-other','O','Cases ' + (i+1) + '-' + Math.min(i+size,testCases.length), chunk.length, 'case', rows);
     }
     return html;
   }
 
-  /* ── Run Results ── */
+  /* == Run Results == */
   function buildRunGroups(results) {
     const passed = results.filter(r => (r.status||'').toLowerCase() === 'pass');
     const failed = results.filter(r => (r.status||'').toLowerCase() !== 'pass');
 
     function rows(list) {
       return list.map((r, i) => {
-        const raw    = String(r.formatted_input || r.input || '');
-        const out    = (r.output||'').slice(0,300);
-        const err    = (r.error ||'').slice(0,300);
+        const raw = String(r.formatted_input || r.input || '');
+        const out = (r.output||'').slice(0,300);
+        const err = (r.error ||'').slice(0,300);
         const status = (r.status||'').toLowerCase();
         const statusColor = status === 'pass' ? 'var(--success)' : status === 'timeout' || status === 'error' ? 'var(--warning)' : 'var(--danger)';
-        return `<div class="rr-row">
-          <div class="rr-top">
-            <span class="rr-num">#${i+1}</span>
-            <span style="font-size:0.72rem;font-weight:600;color:${statusColor};font-family:'JetBrains Mono',monospace;">${esc(r.status||'')}</span>
-            <span class="rr-input">${esc(raw.slice(0,90))}${raw.length>90?'…':''}</span>
-          </div>
-          ${out||err ? `<div class="rr-detail">
-            ${out ? `<div>stdout: <span>${esc(out)}</span></div>` : ''}
-            ${err ? `<div>stderr: <span class="err">${esc(err)}</span></div>` : ''}
-          </div>` : ''}
-        </div>`;
+        const sevEl = r.severity ? sevBadge(r.severity) : '';
+        const catEl = r.category ? '<span style="font-size:0.65rem;color:var(--muted);">' + esc(r.category) + '</span>' : '';
+        return '<div class="rr-row"><div class="rr-top">'
+          + '<span class="rr-num">#' + (i+1) + '</span>'
+          + '<span style="font-size:0.68rem;font-weight:600;color:' + statusColor + ';">' + esc(r.status||'') + '</span>'
+          + sevEl + catEl
+          + '<span class="rr-input">' + esc(raw.slice(0,90)) + (raw.length>90?'...':'') + '</span></div>'
+          + (out||err ? '<div class="rr-detail">'
+            + (out ? '<div>stdout: <span>' + esc(out) + '</span></div>' : '')
+            + (err ? '<div>stderr: <span class="err">' + esc(err) + '</span></div>' : '')
+            + '</div>' : '')
+          + '</div>';
       }).join('');
     }
 
     let html = '';
-    if (passed.length) html += drop('icon-pass','✓','Passed', passed.length, 'test', rows(passed));
-    if (failed.length) html += drop('icon-fail','✗','Failed', failed.length, 'test', rows(failed));
+    if (passed.length) html += drop('icon-pass','P','Passed', passed.length, 'test', rows(passed));
+    if (failed.length) html += drop('icon-fail','F','Failed', failed.length, 'test', rows(failed));
     return html;
   }
 
+  /* ================================================================
+     GREEN COMPUTING / CO2 EMISSIONS
+     ================================================================ */
+  function buildGreenMetrics(gm) {
+    if (!gm) return;
+    greenSection.style.display = 'block';
+
+    const co2 = gm.co2_grams;
+    const energyWh = gm.energy_wh;
+    const timeSec = gm.computation_time_seconds;
+    const power = gm.power_watts;
+    const eq = gm.equivalences || {};
+
+    // Carbon intensity rating
+    let rating = 'Low';
+    let ratingClass = 'low';
+    if (co2 > 1) { rating = 'High'; ratingClass = 'high'; }
+    else if (co2 > 0.1) { rating = 'Medium'; ratingClass = 'medium'; }
+    const barPct = Math.min(Math.max((co2 / 2) * 100, 3), 100);
+
+    let html = '<div class="green-metrics">'
+      + '<div class="green-metric"><div class="green-metric-value co2">' + formatNum(co2, 'g') + '</div>'
+      + '<div class="green-metric-label">CO2 Emissions</div>'
+      + '<div class="green-metric-sub">India grid: ' + gm.carbon_intensity_used + ' gCO2/kWh</div></div>'
+
+      + '<div class="green-metric"><div class="green-metric-value energy">' + formatNum(energyWh, 'Wh') + '</div>'
+      + '<div class="green-metric-label">Energy Consumed</div>'
+      + '<div class="green-metric-sub">' + power + 'W for ' + timeSec + 's</div></div>'
+
+      + '<div class="green-metric"><div class="green-metric-value time">' + timeSec + 's</div>'
+      + '<div class="green-metric-label">Computation Time</div>'
+      + '<div class="green-metric-sub">' + (gm.used_llm ? 'LLM (CPU+GPU)' : 'CPU only') + '</div></div>'
+
+      + '<div class="green-metric"><div class="green-metric-value equiv">' + rating + '</div>'
+      + '<div class="green-metric-label">Carbon Rating</div>'
+      + '<div class="green-metric-sub">' + formatNum(gm.co2_grams_global, 'g') + ' (global avg)</div></div>'
+      + '</div>';
+
+    // Carbon intensity bar
+    html += '<div class="green-bar-wrap">'
+      + '<div class="green-bar-label"><span>Carbon Intensity</span><span>' + formatNum(co2, 'g') + ' CO2</span></div>'
+      + '<div class="green-bar-track"><div class="green-bar-fill ' + ratingClass + '" style="width:' + barPct + '%;"></div></div>'
+      + '</div>';
+
+    // Equivalences
+    html += '<div class="green-equivalences">';
+    if (eq.km_driven !== undefined) {
+      html += greenEquivRow('car', formatNum(eq.km_driven * 1000, 'm'), 'equivalent distance driven by car');
+    }
+    if (eq.phone_charges !== undefined) {
+      html += greenEquivRow('phone', formatNum(eq.phone_charges, ''), 'smartphone charges equivalent');
+    }
+    if (eq.led_bulb_seconds !== undefined) {
+      html += greenEquivRow('bulb', formatNum(eq.led_bulb_seconds, 's'), 'of 10W LED bulb usage');
+    }
+
+    // Trees needed to offset (annual)
+    const treesNeeded = co2 / (21 * 1000 / 365); // daily offset by one tree
+    html += greenEquivRow('tree', formatNum(treesNeeded, ''), 'tree-days to offset this carbon');
+
+    html += '</div>';
+
+    greenBody.innerHTML = html;
+  }
+
+  function greenEquivRow(type, value, desc) {
+    const icons = { car: 'CAR', phone: 'PHN', bulb: 'LED', tree: 'TRE' };
+    return '<div class="green-equiv-row">'
+      + '<span class="green-equiv-icon">' + (icons[type] || '--') + '</span>'
+      + '<span class="green-equiv-value">' + value + '</span> '
+      + '<span>' + desc + '</span></div>';
+  }
+
+  function formatNum(n, unit) {
+    if (n === undefined || n === null) return '--';
+    if (Math.abs(n) < 0.0001) return '< 0.0001 ' + unit;
+    if (Math.abs(n) < 0.01) return n.toFixed(6) + ' ' + unit;
+    if (Math.abs(n) < 1) return n.toFixed(4) + ' ' + unit;
+    if (Math.abs(n) < 100) return n.toFixed(2) + ' ' + unit;
+    return Math.round(n) + ' ' + unit;
+  }
+
+  /* ================================================================
+     ANALYTICS CHARTS
+     ================================================================ */
+  const CHART_COLORS = [
+    '#0f766e','#dc2626','#d97706','#2563eb','#7c3aed',
+    '#0891b2','#db2777','#ea580c','#16a34a','#6366f1',
+    '#c026d3','#ca8a04','#059669','#3b82f6',
+  ];
+
+  function buildAnalytics(testCases, runResults) {
+    const total = testCases.length;
+    const securityCount = testCases.filter(tc => normalizeType(tc.type) === 'security').length;
+    const boundaryCount = testCases.filter(tc => normalizeType(tc.type) === 'boundary').length;
+    const criticalCount = testCases.filter(tc => (tc.severity||'').toLowerCase() === 'critical').length;
+
+    let statsHtml = ''
+      + '<div class="stat-card"><div class="stat-value blue">' + total + '</div><div class="stat-label">Total Test Cases</div></div>'
+      + '<div class="stat-card"><div class="stat-value green">' + boundaryCount + '</div><div class="stat-label">Boundary Tests</div></div>'
+      + '<div class="stat-card"><div class="stat-value red">' + securityCount + '</div><div class="stat-label">Security Vectors</div></div>'
+      + '<div class="stat-card"><div class="stat-value yellow">' + criticalCount + '</div><div class="stat-label">Critical Severity</div></div>';
+
+    if (runResults && runResults.length) {
+      const passed = runResults.filter(r => (r.status||'').toLowerCase() === 'pass').length;
+      const failed = runResults.length - passed;
+      const passRate = Math.round((passed / runResults.length) * 100);
+      statsHtml += '<div class="stat-card"><div class="stat-value green">' + passed + '</div><div class="stat-label">Passed</div></div>'
+        + '<div class="stat-card"><div class="stat-value red">' + failed + '</div><div class="stat-label">Failed</div></div>'
+        + '<div class="stat-card"><div class="stat-value ' + (passRate>=70?'green':passRate>=40?'yellow':'red') + '">' + passRate + '%</div><div class="stat-label">Pass Rate</div></div>';
+    }
+    statsGrid.innerHTML = statsHtml;
+
+    let chartsHtml = '';
+
+    // Severity distribution
+    const sevCounts = {};
+    testCases.forEach(tc => { const s = (tc.severity || 'unknown').toLowerCase(); sevCounts[s] = (sevCounts[s]||0) + 1; });
+    const sevColors = { critical:'#dc2626', high:'#d97706', medium:'#2563eb', low:'#64748b', unknown:'#94a3b8', info:'#0891b2' };
+    chartsHtml += '<div class="chart-card"><div class="chart-title">Severity Distribution</div>' + buildDonut(sevCounts, sevColors) + '</div>';
+
+    // Category breakdown
+    const catCounts = {};
+    testCases.forEach(tc => {
+      const c = tc.category || tc.label || normalizeType(tc.type);
+      const display = c.replace(/_/g,' ').replace(/sqli/gi,'SQLi').replace(/xss/gi,'XSS')
+        .replace(/cmdi/gi,'CmdI').replace(/nosqli/gi,'NoSQLi').replace(/ssti/gi,'SSTI');
+      catCounts[display] = (catCounts[display]||0) + 1;
+    });
+    chartsHtml += '<div class="chart-card"><div class="chart-title">Category Breakdown</div>' + buildBarChart(catCounts) + '</div>';
+
+    // Test type mix
+    const typeCounts = {};
+    testCases.forEach(tc => { const t = normalizeType(tc.type); typeCounts[t] = (typeCounts[t]||0) + 1; });
+    const typeColors = { boundary:'#0f766e', security:'#dc2626', constraint:'#2563eb', edge:'#d97706', other:'#64748b' };
+    chartsHtml += '<div class="chart-card"><div class="chart-title">Test Type Mix</div>' + buildDonut(typeCounts, typeColors) + '</div>';
+
+    // Run results chart
+    if (runResults && runResults.length) {
+      const statusCounts = {};
+      runResults.forEach(r => { const s = (r.status || 'unknown'); statusCounts[s] = (statusCounts[s]||0) + 1; });
+      const statusColors = { Pass:'#16a34a', Fail:'#dc2626', Timeout:'#d97706', Error:'#7c3aed' };
+      chartsHtml += '<div class="chart-card"><div class="chart-title">Run Results</div>' + buildDonut(statusCounts, statusColors) + '</div>';
+    }
+    chartsRow.innerHTML = chartsHtml;
+  }
+
+  function buildDonut(data, colorMap) {
+    const entries = Object.entries(data).sort((a,b) => b[1]-a[1]);
+    const total = entries.reduce((s,e) => s+e[1], 0);
+    if (!total) return '<div style="color:var(--muted);font-size:0.8rem;">No data</div>';
+    const R = 42, CX = 56, CY = 56, STROKE = 13;
+    const circ = 2 * Math.PI * R;
+    let offset = 0, arcs = '', legend = '';
+    entries.forEach(([label, count], i) => {
+      const pct = count / total, dash = pct * circ;
+      const color = colorMap[label] || colorMap[label.toLowerCase()] || CHART_COLORS[i % CHART_COLORS.length];
+      arcs += '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="'+color+'" stroke-width="'+STROKE+'" stroke-dasharray="'+dash+' '+(circ-dash)+'" stroke-dashoffset="'+(-offset)+'"/>';
+      offset += dash;
+      legend += '<div class="legend-item"><span class="legend-dot" style="background:'+color+';"></span>'
+        + '<span class="legend-label">'+esc(label)+'</span><span class="legend-value">'+count+'</span></div>';
+    });
+    return '<div class="donut-wrap"><svg class="donut-svg" viewBox="0 0 112 112">'
+      + '<circle cx="'+CX+'" cy="'+CY+'" r="'+R+'" fill="none" stroke="var(--surface-2)" stroke-width="'+STROKE+'"/>'
+      + '<g transform="rotate(-90 '+CX+' '+CY+')">'+arcs+'</g>'
+      + '<text x="'+CX+'" y="'+CY+'" text-anchor="middle" dominant-baseline="central" fill="var(--text)" font-family="JetBrains Mono,monospace" font-size="15" font-weight="700">'+total+'</text>'
+      + '</svg><div class="donut-legend">'+legend+'</div></div>';
+  }
+
+  function buildBarChart(data) {
+    const entries = Object.entries(data).sort((a,b) => b[1]-a[1]).slice(0,12);
+    const max = Math.max(...entries.map(e=>e[1]), 1);
+    return '<div class="bar-chart">' + entries.map(([label, count], i) => {
+      const pct = Math.max((count/max)*100, 8);
+      const color = CHART_COLORS[i % CHART_COLORS.length];
+      return '<div class="bar-row"><span class="bar-label" title="'+esc(label)+'">'+esc(label)+'</span>'
+        + '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+color+';">'+count+'</div></div></div>';
+    }).join('') + '</div>';
+  }
+
+  /* == Main handler == */
   function showError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
   function hideError()    { errorEl.style.display = 'none'; }
 
@@ -328,14 +869,18 @@
     if (!requirement) { showError('Please enter a requirement.'); return; }
     hideError();
     generateBtn.disabled = true;
-    loadingEl.style.display = 'block';
+    loadingEl.style.display = 'flex';
     specSection.style.display = 'none';
     testSection.style.display = 'none';
     runResultsSection.style.display = 'none';
+    analyticsSection.style.display = 'none';
+    greenSection.style.display = 'none';
+    pipelineSection.style.display = 'none';
+    pipelineCodeGen.textContent = 'Generating Test Cases...';
 
     const code = runWithCodeEl.checked ? (codeEl.value||'').trim() : '';
     try {
-      const res  = await fetch('/api/generate', {
+      const res = await fetch('/api/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ requirement, code: code||undefined }),
@@ -344,12 +889,25 @@
       if (!res.ok) { showError(data.error||'Request failed'); return; }
       if (data.error) showError(data.error);
 
+      // Green metrics (show first)
+      if (data.green_metrics) {
+        buildGreenMetrics(data.green_metrics);
+      }
+
+      // Analytics
+      if (data.test_cases && data.test_cases.length) {
+        analyticsSection.style.display = 'block';
+        buildAnalytics(data.test_cases, data.run_results || null);
+      }
+
       if (data.spec) {
         specSection.style.display = 'block';
         specJsonEl.innerHTML = highlightJson(JSON.stringify(data.spec, null, 2));
       }
 
       if (data.test_cases && data.test_cases.length) {
+        pipelineSection.style.display = 'block';
+        pipelineCodeGen.textContent = `${data.test_cases.length} test cases generated`;
         testSection.style.display = 'block';
         const isComplex = data.test_cases[0].formatted !== undefined && data.test_cases[0].inputs !== undefined;
         testList.innerHTML = isComplex ? buildComplexGroups(data.test_cases) : buildTestGroups(data.test_cases);
@@ -360,8 +918,9 @@
       if (data.run_results && data.run_results.length) {
         runResultsSection.style.display = 'block';
         const passed = data.run_results.filter(r => (r.status||'').toLowerCase() === 'pass').length;
-        runSummaryEl.innerHTML = `<span class="pass">${passed} passed</span> / <span class="fail">${data.run_results.length - passed} failed</span> out of ${data.run_results.length}`;
+        runSummaryEl.innerHTML = '<span class="pass">' + passed + ' passed</span> / <span class="fail">' + (data.run_results.length - passed) + ' failed</span> out of ' + data.run_results.length;
         runResultsList.innerHTML = buildRunGroups(data.run_results);
+        buildAnalytics(data.test_cases, data.run_results);
       }
     } catch(e) {
       showError('Network error: ' + e.message);
@@ -370,6 +929,19 @@
       loadingEl.style.display = 'none';
     }
   });
+
+  /* == Auto-fill from Agent Router query param == */
+  (function() {
+    const params = new URLSearchParams(window.location.search);
+    const reqParam = params.get('requirement');
+    if (reqParam) {
+      requirementEl.value = reqParam;
+      // Auto-click generate after a brief delay to let the page settle
+      setTimeout(() => { generateBtn.click(); }, 500);
+      // Clean URL without reloading
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  })();
 </script>
 </body>
 </html>

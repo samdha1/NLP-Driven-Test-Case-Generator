@@ -134,7 +134,7 @@ def generate_test_cases(spec: Dict[str, Any]) -> List[Dict[str, Any]]:
             from nlp_testgen.security.llm_security_engine import get_creative_security_strings
             from nlp_testgen.aggregator.aggregator import aggregate_test_cases
         precise = get_precise_logic_values(legacy_spec)
-        security = get_creative_security_strings(legacy_spec, max_strings=10)
+        security = get_creative_security_strings(legacy_spec, max_strings=25)
         aggregated = aggregate_test_cases(precise, security)
         out = []
         for tc in aggregated:
@@ -145,6 +145,8 @@ def generate_test_cases(spec: Dict[str, Any]) -> List[Dict[str, Any]]:
                 "input": val,
                 "type": tc.get("type", ""),
                 "label": tc.get("label", ""),
+                "category": tc.get("category", ""),
+                "severity": tc.get("severity", ""),
                 "formatted": str(val),
             })
         return out

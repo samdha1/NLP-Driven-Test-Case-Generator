@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Agent Router</title>
+  <meta name="description" content="Agentic AI powered by Llama 3.2 that routes requirements to the best test generation engine.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafb;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --border: #e2e8f0;
+      --border-hover: #cbd5e1;
+      --text: #1e293b;
+      --muted: #64748b;
+      --accent: #0f766e;
+      --accent-light: #14b8a6;
+      --accent-bg: rgba(15,118,110,0.06);
+      --accent-bg2: rgba(15,118,110,0.1);
+      --success: #16a34a;
+      --success-bg: rgba(22,163,74,0.08);
+      --warning: #d97706;
+      --warning-bg: rgba(217,119,6,0.08);
+      --danger: #dc2626;
+      --danger-bg: rgba(220,38,38,0.08);
+      --info: #2563eb;
+      --info-bg: rgba(37,99,235,0.08);
+      --purple: #7c3aed;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh; font-family: 'Outfit', sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.6;
+    }
+    ::selection { background: var(--accent-light); color: #fff; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--surface-2); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Header */
+    .header {
+      padding: 1.5rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
+    .header h1 {
+      font-weight: 700; font-size: 1.5rem; letter-spacing: -0.02em;
+      color: var(--accent);
+    }
+    .header .subtitle { color: var(--muted); font-size: 0.88rem; margin-top: 0.2rem; }
+    .header-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.3rem 0.7rem; border-radius: 20px;
+      background: var(--accent-bg); color: var(--accent);
+      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.02em;
+      border: 1px solid rgba(15,118,110,0.12);
+    }
+    .header-badge .dot {
+      width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; } 50% { opacity: 0.4; }
+    }
+
+    /* Layout */
+    .container { max-width: 1200px; margin: 0 auto; padding: 1.5rem 2rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    @media (max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* Card */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; overflow: hidden; transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--border-hover); }
+    .card-header {
+      padding: 0.75rem 1.15rem;
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 0.6rem;
+      font-weight: 600; font-size: 0.85rem; color: var(--text);
+    }
+    .card-header .icon-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .card-body { padding: 1rem 1.15rem; }
+
+    /* Textarea */
+    .req-textarea {
+      width: 100%; min-height: 120px; padding: 0.85rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.82rem;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text); resize: vertical; outline: none;
+      transition: border-color 0.2s;
+    }
+    .req-textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+    .req-textarea::placeholder { color: var(--muted); }
+
+    /* Buttons */
+    .btn {
+      font-family: 'Outfit', sans-serif; font-weight: 600;
+      padding: 0.6rem 1.5rem; border-radius: 6px; border: none;
+      cursor: pointer; font-size: 0.88rem; transition: all 0.15s;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-redirect {
+      width: 100%; padding: 0.7rem; border-radius: 6px; border: none;
+      font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.88rem;
+      cursor: pointer; color: #fff; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      margin-top: 0.85rem;
+    }
+    .btn-redirect.shivteja { background: var(--success); }
+    .btn-redirect.shivteja:hover { background: #15803d; }
+    .btn-redirect.nlp_testgen { background: var(--info); }
+    .btn-redirect.nlp_testgen:hover { background: #1d4ed8; }
+    .row { display: flex; align-items: center; gap: 1rem; margin-top: 0.85rem; flex-wrap: wrap; }
+    .hint { font-size: 0.72rem; color: var(--muted); }
+    .hint code {
+      background: var(--surface-2); padding: 0.08rem 0.25rem; border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--accent);
+    }
+
+    /* Loading */
+    .loading {
+      color: var(--accent); margin-top: 0.85rem; font-size: 0.85rem;
+      display: flex; align-items: center; gap: 0.45rem;
+    }
+    .loading .spinner {
+      width: 14px; height: 14px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      color: var(--danger); padding: 0.65rem 0.85rem;
+      background: var(--danger-bg); border: 1px solid rgba(220,38,38,0.15);
+      border-radius: 6px; margin-top: 0.85rem; font-size: 0.85rem;
+    }
+    .fade-in { animation: fadeIn 0.35s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Section */
+    .section { margin-top: 1.75rem; }
+    .section-title {
+      font-size: 1rem; margin-bottom: 0.65rem; font-weight: 600;
+      color: var(--text); display: flex; align-items: center; gap: 0.45rem;
+    }
+    .section-title .st-icon {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+
+    /* Result card */
+    .result-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 0.85rem; margin-bottom: 1rem;
+    }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.85rem; text-align: center;
+    }
+    .stat-value {
+      font-size: 1.4rem; font-weight: 700; line-height: 1.1;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .stat-value.green { color: var(--success); }
+    .stat-value.blue { color: var(--info); }
+    .stat-value.teal { color: var(--accent); }
+    .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 0.25rem; font-weight: 500; }
+
+    .reason-box {
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 0.75rem 1rem; font-size: 0.82rem;
+      color: var(--text); line-height: 1.6;
+    }
+    .reason-box strong { color: var(--accent); }
+
+    /* Comparison Table */
+    .comparison-table {
+      width: 100%; border-collapse: collapse; font-size: 0.8rem;
+    }
+    .comparison-table th {
+      padding: 0.65rem 0.85rem; text-align: left;
+      background: var(--surface-2); border: 1px solid var(--border);
+      font-weight: 600; color: var(--text); font-size: 0.78rem;
+    }
+    .comparison-table td {
+      padding: 0.55rem 0.85rem; border: 1px solid var(--border);
+      color: var(--text); vertical-align: top;
+    }
+    .comparison-table tr:hover td { background: var(--accent-bg); }
+    .comparison-table .team-header {
+      text-align: center; font-weight: 700; font-size: 0.85rem;
+    }
+    .comparison-table .team-shivteja { color: var(--success); }
+    .comparison-table .team-sameer { color: var(--info); }
+    .check { color: var(--success); font-weight: 700; }
+    .cross { color: var(--muted); }
+    .feature-label { font-weight: 500; color: var(--muted); }
+
+    /* Bar chart for comparison */
+    .comp-chart { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+    .comp-row { display: flex; align-items: center; gap: 0.6rem; }
+    .comp-label {
+      width: 120px; font-size: 0.72rem; color: var(--muted);
+      text-align: right; font-weight: 500; flex-shrink: 0;
+    }
+    .comp-bars { flex: 1; display: flex; gap: 4px; align-items: center; }
+    .comp-bar {
+      height: 22px; border-radius: 4px; display: flex; align-items: center;
+      padding-left: 8px; font-size: 0.65rem; font-weight: 600;
+      font-family: 'JetBrains Mono', monospace; color: #fff;
+      transition: width 0.6s ease; min-width: 24px;
+    }
+    .comp-bar.shivteja { background: var(--success); }
+    .comp-bar.sameer { background: var(--info); }
+    .comp-legend {
+      display: flex; gap: 1.25rem; margin-top: 0.5rem; justify-content: center;
+    }
+    .comp-legend-item {
+      display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--muted);
+    }
+    .comp-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+    .comp-legend-dot.shivteja { background: var(--success); }
+    .comp-legend-dot.sameer { background: var(--info); }
+
+    /* Project links */
+    .project-link {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.45rem 1rem; border-radius: 6px; border: 1px solid var(--border);
+      font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.78rem;
+      text-decoration: none; transition: all 0.15s; cursor: pointer;
+      background: var(--surface);
+    }
+    .project-link:hover { transform: translateY(-1px); }
+    .project-link.shivteja { color: var(--success); }
+    .project-link.shivteja:hover { background: var(--success-bg); border-color: var(--success); }
+    .project-link.sameer { color: var(--info); }
+    .project-link.sameer:hover { background: var(--info-bg); border-color: var(--info); }
+    .project-link .link-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+    }
+    .project-link.shivteja .link-dot { background: var(--success); }
+    .project-link.sameer .link-dot { background: var(--info); }
+    .header-links { display: flex; align-items: center; gap: 0.6rem; }
+    .card-footer {
+      padding: 0.65rem 1.15rem; border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--surface-2);
+    }
+    .card-footer .port {
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <h1>AI Agent Router</h1>
+      <p class="subtitle">Llama 3.2 analyzes your requirement and routes to the best test generation engine.</p>
+    </div>
+    <div class="header-links">
+      <a class="project-link shivteja" href="http://localhost:8501" target="_blank">
+        <span class="link-dot"></span> Shiv Teja
+      </a>
+      <a class="project-link sameer" href="http://localhost:5000" target="_blank">
+        <span class="link-dot"></span> Sameer
+      </a>
+      <div class="header-badge"><span class="dot"></span> Llama 3.2</div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Input -->
+  <div class="card">
+    <div class="card-header">
+      <span class="icon-dot" style="background:var(--accent);"></span>
+      Requirement
+    </div>
+    <div class="card-body">
+      <textarea id="requirement" class="req-textarea"
+        placeholder="e.g. Push 5 elements into a stack&#10;&#10;Or: Age must be between 18 and 60&#10;&#10;Or: Find the maximum element in an array"></textarea>
+      <div class="row">
+        <button class="btn btn-primary" id="analyzeBtn">Analyze & Route</button>
+        <span class="hint">Press <code>Ctrl+Enter</code> to submit</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="loading" class="loading" style="display:none;">
+    <div class="spinner"></div> Llama 3.2 is analyzing your requirement...
+  </div>
+  <p id="error" class="error-msg" style="display:none;"></p>
+
+  <!-- Classification Result -->
+  <section class="section fade-in" id="resultSection" style="display:none;">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--accent);"></span>
+      Agent Classification
+    </div>
+    <div class="result-grid" id="resultGrid"></div>
+    <div class="reason-box" id="reasonBox"></div>
+    <button class="btn-redirect" id="redirectBtn" onclick="doRedirect()">
+      <span id="redirectLabel">Open Project</span>
+    </button>
+  </section>
+
+  <!-- Team Comparison -->
+  <section class="section fade-in">
+    <div class="section-title">
+      <span class="st-icon" style="background:var(--purple);"></span>
+      Team Comparison
+    </div>
+
+    <div class="grid-2">
+      <!-- Feature Table -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon-dot" style="background:var(--purple);"></span>
+          Feature Matrix
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table class="comparison-table">
+            <thead>
+              <tr>
+                <th>Feature</th>
+                <th class="team-header team-shivteja">Shiv Teja</th>
+                <th class="team-header team-sameer">Sameer</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="feature-label">NLP Compiler Pipeline</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Lexical Analysis (spaCy)</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Spell Checking</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Syntax &amp; Semantic Analysis</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">IR Generation</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Data Structure Tests</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Password / Login / File Upload</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+              <tr>
+                <td class="feature-label">LLM-Powered Parsing</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Z3 Constraint Solver</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Security Engine (80+ vectors)</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Boundary Value Analysis</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Analytics Dashboard</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Code Execution &amp; Testing</td>
+                <td class="cross">--</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Green Computing / CO2</td>
+                <td class="check">Yes</td>
+                <td class="check">Yes</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Security Risk Detection</td>
+                <td class="check">Yes (5 types)</td>
+                <td class="check">Yes (80+)</td>
+              </tr>
+              <tr>
+                <td class="feature-label">Execution Time Analysis</td>
+                <td class="check">Yes</td>
+                <td class="cross">--</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Capabilities Chart -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon-dot" style="background:var(--info);"></span>
+          Capabilities Comparison
+        </div>
+        <div class="card-body">
+          <div class="comp-chart">
+            <div class="comp-row">
+              <span class="comp-label">Data Structures</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:90%;">6</div>
+                <div class="comp-bar sameer" style="width:20%;">1</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">Security Vectors</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:35%;">5</div>
+                <div class="comp-bar sameer" style="width:95%;">80+</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">Manual NLP Stages</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:90%;">6</div>
+                <div class="comp-bar sameer" style="width:40%;">2</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">LLM Intelligence</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:10%;">0</div>
+                <div class="comp-bar sameer" style="width:90%;">High</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">Constraint Solving</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:10%;">0</div>
+                <div class="comp-bar sameer" style="width:85%;">Z3</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">Auth / Login Tests</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:80%;">4</div>
+                <div class="comp-bar sameer" style="width:30%;">1</div>
+              </div>
+            </div>
+            <div class="comp-row">
+              <span class="comp-label">Green Computing</span>
+              <div class="comp-bars">
+                <div class="comp-bar shivteja" style="width:70%;">CodeCarbon</div>
+                <div class="comp-bar sameer" style="width:70%;">Estimated</div>
+              </div>
+            </div>
+          </div>
+          <div class="comp-legend">
+            <div class="comp-legend-item"><span class="comp-legend-dot shivteja"></span> Shiv Teja</div>
+            <div class="comp-legend-item"><span class="comp-legend-dot sameer"></span> Sameer</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="section fade-in" style="margin-top:1.25rem;">
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-header">
+          <span class="icon-dot" style="background:var(--success);"></span>
+          Shiv Teja — Tech Stack
+        </div>
+        <div class="card-body" style="font-size:0.82rem; color:var(--muted); line-height:1.8;">
+          Streamlit &middot; spaCy NLP &middot; SpellChecker &middot; CodeCarbon &middot; psutil<br>
+          Lexical / Syntax / Semantic Analysis &middot; IR Generation<br>
+          Stack &middot; Queue &middot; Array &middot; Linked List &middot; Password &middot; Login &middot; File Upload<br>
+          Security Risk Detection (SQL Injection, XSS, Unauthorized Access, File Upload Attack, Code Tampering)<br>
+          Execution Time Analysis &middot; Carbon Emission Indicator &middot; Energy Consumption
+        </div>
+        <div class="card-footer">
+          <span class="port">localhost:8501</span>
+          <a class="project-link shivteja" href="http://localhost:8501" target="_blank">
+            <span class="link-dot"></span> Open Shiv Teja
+          </a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="icon-dot" style="background:var(--info);"></span>
+          Sameer — Tech Stack
+        </div>
+        <div class="card-body" style="font-size:0.82rem; color:var(--muted); line-height:1.8;">
+          Flask &middot; Llama 3.2 (Ollama) &middot; Z3 Solver &middot; spaCy<br>
+          LLM Parsing &middot; Security Engine (80+ payloads) &middot; Aggregator<br>
+          Boundary Analysis &middot; Analytics Dashboard &middot; Code Runner
+        </div>
+        <div class="card-footer">
+          <span class="port">localhost:5000</span>
+          <a class="project-link sameer" href="http://localhost:5000" target="_blank">
+            <span class="link-dot"></span> Open Sameer
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const requirementEl = document.getElementById('requirement');
+  const analyzeBtn    = document.getElementById('analyzeBtn');
+  const loadingEl     = document.getElementById('loading');
+  const errorEl       = document.getElementById('error');
+  const resultSection = document.getElementById('resultSection');
+  const resultGrid    = document.getElementById('resultGrid');
+  const reasonBox     = document.getElementById('reasonBox');
+
+  let currentResult = null;
+
+  requirementEl.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.key === 'Enter') { e.preventDefault(); analyzeBtn.click(); }
+  });
+
+  analyzeBtn.addEventListener('click', async () => {
+    const req = requirementEl.value.trim();
+    if (!req) { showError('Please enter a requirement.'); return; }
+    hideError();
+    analyzeBtn.disabled = true;
+    loadingEl.style.display = 'flex';
+    resultSection.style.display = 'none';
+
+    const t0 = performance.now();
+    try {
+      const res = await fetch('/api/classify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requirement: req }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) { showError(data.error || 'Failed'); return; }
+      currentResult = data;
+      const elapsed = ((performance.now() - t0) / 1000).toFixed(1);
+      showResult(data, elapsed);
+    } catch(e) {
+      showError('Network error: ' + e.message);
+    } finally {
+      analyzeBtn.disabled = false;
+      loadingEl.style.display = 'none';
+    }
+  });
+
+  function showResult(data, elapsed) {
+    resultSection.style.display = 'block';
+    const isS = data.project === 'shivteja';
+    const conf = Math.round(data.confidence * 100);
+    const confColor = conf >= 80 ? 'green' : conf >= 60 ? 'teal' : 'blue';
+
+    resultGrid.innerHTML =
+      '<div class="stat-card"><div class="stat-value ' + (isS ? 'green' : 'blue') + '">' + esc(data.project_name) + '</div><div class="stat-label">Routed To</div></div>' +
+      '<div class="stat-card"><div class="stat-value ' + confColor + '">' + conf + '%</div><div class="stat-label">Confidence</div></div>' +
+      '<div class="stat-card"><div class="stat-value teal">' + elapsed + 's</div><div class="stat-label">Analysis Time</div></div>' +
+      '<div class="stat-card"><div class="stat-value teal">Llama 3.2</div><div class="stat-label">Model Used</div></div>';
+
+    reasonBox.innerHTML = '<strong>Reasoning:</strong> ' + esc(data.reason);
+
+    const btn = document.getElementById('redirectBtn');
+    btn.className = 'btn-redirect ' + data.project;
+    document.getElementById('redirectLabel').textContent = 'Open in ' + data.project_name;
+  }
+
+  function doRedirect() {
+    if (currentResult && currentResult.redirect_url) {
+      window.open(currentResult.redirect_url, '_blank');
+    }
+  }
+
+  function showError(msg) { errorEl.textContent = msg; errorEl.style.display = 'block'; }
+  function hideError() { errorEl.style.display = 'none'; }
+  function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+</script>
+
+</body>
+</html>
