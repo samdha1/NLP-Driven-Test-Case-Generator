@@ -24,23 +24,22 @@ GLOBAL_CARBON_INTENSITY = 475  # gCO2/kWh (global average)
 TREES_PER_KG_CO2_YEAR = 21   # One tree absorbs ~21 kg CO2/year
 
 
-def _estimate_emissions(duration_seconds: float, used_llm: bool = True) -> dict:
-    """Estimate energy consumption and CO2 emissions from computation time."""
-    power_watts = (CPU_POWER_WATTS + GPU_POWER_WATTS) if used_llm else CPU_POWER_WATTS
-    energy_kwh = (power_watts * duration_seconds) / (1000 * 3600)
-    co2_grams = energy_kwh * INDIA_CARBON_INTENSITY
-    co2_global_grams = energy_kwh * GLOBAL_CARBON_INTENSITY
+def _calculate_emissions(duration_seconds: float, actual_energy_kwh: float, actual_power_watts: float, used_llm: bool = True) -> dict:
+    """Calculate energy consumption and CO2 emissions using dynamic hardware telemetry."""
+    
+    co2_grams = actual_energy_kwh * INDIA_CARBON_INTENSITY
+    co2_global_grams = actual_energy_kwh * GLOBAL_CARBON_INTENSITY
 
     # Equivalence metrics
     km_driven = co2_grams / 121  # avg car emits 121 g CO2/km
-    phone_charges = energy_kwh / 0.012  # ~12 Wh per phone charge
-    led_bulb_seconds = (energy_kwh * 3600 * 1000) / 10  # 10W LED bulb
+    phone_charges = actual_energy_kwh / 0.012  # ~12 Wh per phone charge
+    led_bulb_seconds = (actual_energy_kwh * 3600 * 1000) / 10  # 10W LED bulb
 
     return {
         "computation_time_seconds": round(duration_seconds, 2),
-        "power_watts": power_watts,
-        "energy_kwh": round(energy_kwh, 8),
-        "energy_wh": round(energy_kwh * 1000, 4),
+        "power_watts": round(actual_power_watts, 2),
+        "energy_kwh": round(actual_energy_kwh, 8),
+        "energy_wh": round(actual_energy_kwh * 1000, 4),
         "co2_grams": round(co2_grams, 4),
         "co2_grams_global": round(co2_global_grams, 4),
         "carbon_intensity_used": INDIA_CARBON_INTENSITY,
@@ -52,7 +51,6 @@ def _estimate_emissions(duration_seconds: float, used_llm: bool = True) -> dict:
         "used_llm": used_llm,
     }
 
-
 def run_pipeline(requirement: str, code: str = None, target_script: str = None):
     """
     Parse requirement (auto-detects simple vs complex) -> one spec -> one list of test cases.
@@ -61,6 +59,30 @@ def run_pipeline(requirement: str, code: str = None, target_script: str = None):
     """
     pipeline_start = time.time()
     used_llm = False
+
+    try:
+        import psutil
+        # Initialize baseline for CPU metric measurement
+        psutil.cpu_percent(interval=None)
+        has_psutil = True
+    except Exception:
+        has_psutil = False
+
+    def finalize_metrics(start_t, llm_flag):
+        elapsed_t = time.time() - start_t
+        avg_cpu = 50.0  # fallback
+        if has_psutil:
+            avg_cpu = psutil.cpu_percent(interval=None)
+            if avg_cpu < 1.0: 
+                avg_cpu = 1.0 # Ensure baseline idle usage
+
+        actual_power_watts = CPU_POWER_WATTS * (avg_cpu / 100.0)
+        # If GPU was utilized for Language Model inference
+        if llm_flag:
+            actual_power_watts += (GPU_POWER_WATTS * 0.8) # Approx 80% load
+
+        actual_en_kwh = (actual_power_watts * elapsed_t) / (1000 * 3600)
+        return _calculate_emissions(elapsed_t, actual_en_kwh, actual_power_watts, llm_flag)
 
     try:
         from src.nlp_testgen.complex.complex_spec import parse_requirement, generate_test_cases
@@ -79,12 +101,11 @@ def run_pipeline(requirement: str, code: str = None, target_script: str = None):
 
     spec = parse_requirement(requirement)
     if not spec:
-        elapsed = time.time() - pipeline_start
         return {
             "spec": None,
             "test_cases": [],
             "error": "Could not parse requirement",
-            "green_metrics": _estimate_emissions(elapsed, used_llm),
+            "green_metrics": finalize_metrics(pipeline_start, used_llm)
         }
 
     test_cases = generate_test_cases(spec)
@@ -100,8 +121,7 @@ def run_pipeline(requirement: str, code: str = None, target_script: str = None):
         except Exception as e:
             out["run_results"] = []
             out["run_error"] = str(e)
-            elapsed = time.time() - pipeline_start
-            out["green_metrics"] = _estimate_emissions(elapsed, used_llm)
+            out["green_metrics"] = finalize_metrics(pipeline_start, used_llm)
             return out
     elif target_script and os.path.isfile(target_script):
         script_path = target_script
@@ -134,6 +154,5 @@ def run_pipeline(requirement: str, code: str = None, target_script: str = None):
                 except Exception:
                     pass
 
-    elapsed = time.time() - pipeline_start
-    out["green_metrics"] = _estimate_emissions(elapsed, used_llm)
+    out["green_metrics"] = finalize_metrics(pipeline_start, used_llm)
     return out
